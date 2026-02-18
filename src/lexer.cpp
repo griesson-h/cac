@@ -18,7 +18,8 @@ std::map<std::string, token_type> reserved_keywords = {
   {"true", TRUE},
   {"false", FALSE},
   {"this", THIS},
-  {"null", _NULL}
+  {"null", _NULL},
+  {"return", RETURN}
 };
 
 Token::Token(token_type i_type, std::string i_lexeme, void* i_literal, int i_line): type(i_type), lexeme(i_lexeme), line(i_line) {
@@ -45,8 +46,8 @@ std::vector<Token> lex_tokens(const std::string source) {
     tokens.push_back(Token(type, text, literal, current_line));
     Token(type, text, literal, current_line).to_string();
   };
-  const auto check = [&current, source](char expected){
-    if (current <= source.length()) return false;
+  const auto check = [&current, source, __EOF](char expected){
+    if (__EOF()) return false;
     if (source.at(current) != expected) return false;
 
     current++;
@@ -91,19 +92,16 @@ std::vector<Token> lex_tokens(const std::string source) {
       while (is_digit(peek_safely())) current++;
       const auto num_string = source.substr(begining, current - begining);
       const int num = std::stod(num_string);
-      add_token(NUM, (void*)&num);
+      add_token(FLOAT, (void*)&num);
     } else {
       std::cout << "INT" << std::endl;
       const auto num_string = source.substr(begining, current - begining);
       const int num = std::stoi(num_string);
-      add_token(NUM, (void*)&num); // i fucking hate void pointers, i'm gonna have to write those stupid references and dereferences each
+      add_token(INT, (void*)&num); // i fucking hate void pointers, i'm gonna have to write those stupid references and dereferences each
     }                                             // time i wanna access them over and over again, and also i can already see the segfaults annoying the hell out of me
   };
   const auto lex_identifier = [&](){
-    while (is_alphabetic(peek_safely())) {
-      std::cout << peek_safely() << std::endl;
-      current++; 
-    }
+    while (is_alphabetic(peek_safely())) current++;
 
     std::cout << peek_safely() << std::endl;
     const auto ident_string = source.substr(begining, current - begining);
@@ -120,7 +118,9 @@ std::vector<Token> lex_tokens(const std::string source) {
     begining = current;
 
     const char ch = source.at(current++);
-    std::cout << ch << std::endl;
+    if (ch != ' ' && ch != '\n') {
+      std::cout << ch << std::endl;
+    }
     switch(ch) {
       case '(': add_token(LEFT_PARENTH, nullptr); break;
       case ')': add_token(RIGHT_PARENTH, nullptr); break;
@@ -165,8 +165,9 @@ std::vector<Token> lex_tokens(const std::string source) {
         current_line++;
         break;
       default:
-        std::cout << "defuault" << std::endl;
+        std::cout << "default" << std::endl;
         if (ch >= '0' && ch <= '9') {
+          std::cout << "NUM" << std::endl;
           lex_numtype();
         } else if (is_alphabetic(ch)) {
           std::cout << "IDENT" << std::endl;
