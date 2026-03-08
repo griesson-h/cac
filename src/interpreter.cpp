@@ -1,5 +1,6 @@
 // Thank https://craftinginterpreters.com for the beautiful book
 
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -7,6 +8,8 @@
 #include <string>
 #include <stdexcept>
 #include <csignal>
+#include "expressions.h"
+#include "parser.h"
 #include "interpreter.h"
 #include "lexer.h"
 
@@ -17,9 +20,18 @@ void SIGINT_handler(int s) {
   exit(0);
 }
 
-void report(int line, const char* message, const char* file) {
-  std::cout << "<file " << file << ", line " << line << "> " << message;
+void report(int line, const char* message, const char* where, const char* file) {
+  std::cout << "<file " << file << ", line " << line << "> " << where << ": " << message << std::endl;
   failed = true;
+}
+void report(Token token, const char* message) {
+  if (token.type == _EOF) {
+    report(token.line, message, "at end");
+  } else {
+    std::stringstream ss;
+    ss << "at '" << token.lexeme << "'";
+    report(token.line, message, ss.str().c_str());
+  }
 }
 
 void run(std::string bytes) {
@@ -34,13 +46,32 @@ void run(std::string bytes) {
 //    tokens.push_back(token);
 //  }
 //  for (int i = 0; i < tokens.size(); ++i) std::cout << tokens[i] << std::endl;
-  std::cout << "fsdf" << std::endl;
+  if (failed) return;
+
   lex_tokens(bytes);
   int i = 0;
   for (auto token : tokens) {
-    std::cout << std::endl << token.to_string() << '\t' << i << std::endl;
+    std::cout << std::endl << token.to_string() << '\t' << "id: " << i << std::endl;
     i++;
   }
+  if (failed) return;
+  expr ex = Parser::parse();
+  if (failed) return;
+
+  //std::cout << std::get<Binary>(ex).first->index() << std::endl;
+  
+  std::cout << PreatyPrinter::print(ex) << " was printed "<< std::endl;
+
+//  (+ (- 23 43) (* 23 (group 23.43)))
+//
+//  literal_t lit1 = 23, lit2 = 43, lit3 = 23, lit4 = 23.43;
+//  expr Lit1 = Literal(lit1), Lit2 = Literal(43), Lit3 = Literal(lit3), Lit4 = Literal(lit4);
+//  expr group = Group(Lit4);
+//  expr otricanie = Binary(Lit1, Lit2, Token(MINUS, "-", nullptr, -1));
+//  expr umnozhenie = Binary(Lit3, group, Token(STAR, "*", nullptr, -1));
+//  expr dobavlenie = Binary(otricanie, umnozhenie, Token(PLUS, "+", nullptr, -1));
+//
+//  std::cout << PreatyPrinter::print(dobavlenie) << std::endl;
 }
 
 void run_script(char* source) {
@@ -66,7 +97,10 @@ void run_cmd() {
     std::cout << "cac-cmd > ";
     std::string line;
     std::getline(std::cin, line);
+    if (line == "clear") system("clear");
+    if (line == "exit") break;
     run(line);
+    /*TEMP*/tokens.clear();
     failed = false;
   }
 }

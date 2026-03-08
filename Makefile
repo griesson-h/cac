@@ -129,6 +129,30 @@ cac/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/build
 .PHONY : cac/fast
 
+src/expressions.o: src/expressions.cpp.o
+.PHONY : src/expressions.o
+
+# target to build an object file
+src/expressions.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/expressions.cpp.o
+.PHONY : src/expressions.cpp.o
+
+src/expressions.i: src/expressions.cpp.i
+.PHONY : src/expressions.i
+
+# target to preprocess a source file
+src/expressions.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/expressions.cpp.i
+.PHONY : src/expressions.cpp.i
+
+src/expressions.s: src/expressions.cpp.s
+.PHONY : src/expressions.s
+
+# target to generate assembly for a file
+src/expressions.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/expressions.cpp.s
+.PHONY : src/expressions.cpp.s
+
 src/interpreter.o: src/interpreter.cpp.o
 .PHONY : src/interpreter.o
 
@@ -177,6 +201,30 @@ src/lexer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/lexer.cpp.s
 .PHONY : src/lexer.cpp.s
 
+src/parser.o: src/parser.cpp.o
+.PHONY : src/parser.o
+
+# target to build an object file
+src/parser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/parser.cpp.o
+.PHONY : src/parser.cpp.o
+
+src/parser.i: src/parser.cpp.i
+.PHONY : src/parser.i
+
+# target to preprocess a source file
+src/parser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/parser.cpp.i
+.PHONY : src/parser.cpp.i
+
+src/parser.s: src/parser.cpp.s
+.PHONY : src/parser.s
+
+# target to generate assembly for a file
+src/parser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/parser.cpp.s
+.PHONY : src/parser.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -186,12 +234,18 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... cac"
+	@echo "... src/expressions.o"
+	@echo "... src/expressions.i"
+	@echo "... src/expressions.s"
 	@echo "... src/interpreter.o"
 	@echo "... src/interpreter.i"
 	@echo "... src/interpreter.s"
 	@echo "... src/lexer.o"
 	@echo "... src/lexer.i"
 	@echo "... src/lexer.s"
+	@echo "... src/parser.o"
+	@echo "... src/parser.i"
+	@echo "... src/parser.s"
 .PHONY : help
 
 

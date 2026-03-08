@@ -1,6 +1,8 @@
 #include "lexer.h"
 #include <sstream>
+#include <stdexcept>
 #include <string>
+#include "expressions.h"
 #include "interpreter.h"
 #include <iostream>
 
@@ -22,13 +24,18 @@ std::map<std::string, token_type> reserved_keywords = {
   {"return", RETURN}
 };
 
-Token::Token(token_type i_type, std::string i_lexeme, void* i_literal, int i_line): type(i_type), lexeme(i_lexeme), line(i_line) {
-  literal = i_literal;
+Token::Token(token_type i_type, std::string i_lexeme, const literal_t* i_literal, int i_line): type(i_type), lexeme(i_lexeme), line(i_line) {
+  if (!i_literal) return;
+  literal = *i_literal;
+}
+
+Token Token::operator=(Token tok) {
+  return tok;
 }
 
 std::string Token::to_string() {
   std::stringstream ss;
-  ss << this->type << '\t' << this->lexeme << '\t' << this->literal;
+  ss << "type: " << this->type << '\t' << "lex: " << this->lexeme << '\t' << "lit: " << literal_to_string(this->literal);
   return ss.str();
 }
 
@@ -41,10 +48,9 @@ std::vector<Token> lex_tokens(const std::string source) {
   const auto __EOF = [&current, source](){
     return current >= source.length();
   };
-  const auto add_token = [begining, current, current_line, source](token_type type, void* literal){
-    const std::string text = source.substr(begining, current);
+  const auto add_token = [&begining, &current, &current_line, source](token_type type, const literal_t* literal){
+    const std::string text = source.substr(begining, current - begining );
     tokens.push_back(Token(type, text, literal, current_line));
-    Token(type, text, literal, current_line).to_string();
   };
   const auto check = [&current, source, __EOF](char expected){
     if (__EOF()) return false;
@@ -70,10 +76,10 @@ std::vector<Token> lex_tokens(const std::string source) {
       report(report_line, "Unterminated string");
     }
 
-    current++;
 
-    const auto literal = source.substr(begining + 1, current - 1);
-    add_token(STRING, (void*)&literal);
+    const literal_t literal = source.substr(begining + 1, current - begining - 1);
+    current++;
+    add_token(STRING, &literal);
   };
   const auto is_digit = [&](char c){
     return c >= '0' && c <= '9';
@@ -91,21 +97,22 @@ std::vector<Token> lex_tokens(const std::string source) {
       current++;
       while (is_digit(peek_safely())) current++;
       const auto num_string = source.substr(begining, current - begining);
-      const int num = std::stod(num_string);
-      add_token(FLOAT, (void*)&num);
+      const literal_t num = std::stod(num_string);
+      add_token(FLOAT, &num);
     } else {
       std::cout << "INT" << std::endl;
       const auto num_string = source.substr(begining, current - begining);
-      const int num = std::stoi(num_string);
-      add_token(INT, (void*)&num); // i fucking hate void pointers, i'm gonna have to write those stupid references and dereferences each
-    }                                             // time i wanna access them over and over again, and also i can already see the segfaults annoying the hell out of me
+      literal_t num;
+      try {
+        num = std::stoi(num_string);
+      } catch (std::out_of_range err) {report(current_line, "Integer overflow");}
+      add_token(INT, &num);
+    }
   };
   const auto lex_identifier = [&](){
     while (is_alphabetic(peek_safely())) current++;
 
-    std::cout << peek_safely() << std::endl;
     const auto ident_string = source.substr(begining, current - begining);
-    std::cout << ident_string << std::endl;
     if (reserved_keywords.contains(ident_string)) {
       std::cout << "RESERVED" << std::endl;
       add_token(reserved_keywords.at(ident_string), nullptr); 
@@ -153,6 +160,7 @@ std::vector<Token> lex_tokens(const std::string source) {
         } else {
           add_token(SLASH, nullptr);
         }
+        break;
       case '"':
         std::cout << "STRING" << std::endl;
         lex_string();
@@ -179,7 +187,7 @@ std::vector<Token> lex_tokens(const std::string source) {
     }
   }
 
-  add_token(_EOF, nullptr);
+  tokens.push_back(Token{_EOF, "", nullptr, current_line});
   return tokens;
 }
 
