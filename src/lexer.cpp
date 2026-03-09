@@ -35,7 +35,7 @@ Token Token::operator=(Token tok) {
 
 std::string Token::to_string() {
   std::stringstream ss;
-  ss << "type: " << this->type << '\t' << "lex: " << this->lexeme << '\t' << "lit: " << literal_to_string(this->literal);
+  ss << "type: " << this->type << '\t' << "lex: " << this->lexeme << '\t' << "lit: " << LitOp::literal_to_string(this->literal);
   return ss.str();
 }
 

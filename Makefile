@@ -129,6 +129,30 @@ cac/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/build
 .PHONY : cac/fast
 
+src/executing.o: src/executing.cpp.o
+.PHONY : src/executing.o
+
+# target to build an object file
+src/executing.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/executing.cpp.o
+.PHONY : src/executing.cpp.o
+
+src/executing.i: src/executing.cpp.i
+.PHONY : src/executing.i
+
+# target to preprocess a source file
+src/executing.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/executing.cpp.i
+.PHONY : src/executing.cpp.i
+
+src/executing.s: src/executing.cpp.s
+.PHONY : src/executing.s
+
+# target to generate assembly for a file
+src/executing.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/executing.cpp.s
+.PHONY : src/executing.cpp.s
+
 src/expressions.o: src/expressions.cpp.o
 .PHONY : src/expressions.o
 
@@ -234,6 +258,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... cac"
+	@echo "... src/executing.o"
+	@echo "... src/executing.i"
+	@echo "... src/executing.s"
 	@echo "... src/expressions.o"
 	@echo "... src/expressions.i"
 	@echo "... src/expressions.s"

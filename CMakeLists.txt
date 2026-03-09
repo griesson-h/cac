@@ -16,4 +16,5 @@ add_executable(${PROJECT_NAME}
     src/lexer.cpp
     src/parser.cpp
     src/expressions.cpp
+    src/executing.cpp
 )

@@ -8,6 +8,7 @@
 #include <string>
 #include <stdexcept>
 #include <csignal>
+#include "executing.h"
 #include "expressions.h"
 #include "parser.h"
 #include "interpreter.h"
@@ -58,9 +59,11 @@ void run(std::string bytes) {
   expr ex = Parser::parse();
   if (failed) return;
 
+  Interpreter::interpret(ex);
+
   //std::cout << std::get<Binary>(ex).first->index() << std::endl;
   
-  std::cout << PreatyPrinter::print(ex) << " was printed "<< std::endl;
+  //std::cout << PreatyPrinter::print(ex) << " was printed "<< std::endl;
 
 //  (+ (- 23 43) (* 23 (group 23.43)))
 //

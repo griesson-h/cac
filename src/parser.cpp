@@ -76,7 +76,6 @@ expr Parser::term() {
   expr ex = factor();
 
   while (match(PLUS) || match(MINUS)) {
-    std::cout << "fsdgsd" << std::endl;
     Token _operator = tokens[current];
     current++;
     expr right = factor();
@@ -197,7 +196,7 @@ std::string PreatyPrinter::print(expr expr) {
 
 std::string PreatyPrinter::print_over(Literal expr) {
   if (expr.literal.index() == 0) return "null";
-  return literal_to_string(expr.literal);
+  return LitOp::literal_to_string(expr.literal);
 }
 std::string PreatyPrinter::print_over(Group expr) {
   std::vector<::expr> vec;
