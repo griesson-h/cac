@@ -1,4 +1,3 @@
-while (!WindowShouldClose()) {
-    DrawSomthing();"
-    true null false this
-}
+zaprintit 2 == 2;
+zaprintit 23+34;
+zaprintit 1/0;

@@ -1,17 +1,22 @@
 #pragma once
 #include "expressions.h"
 #include "lexer.h"
+#include "statements.h"
 #include <concepts>
 #include <string>
 #include <vector>
 
 /*abstract*/ class Parser {
 public:
-  static expr parse();
+  static std::vector<Stmt> parse();
 private:
   static int current;
 
   static void synchronize();
+
+  static Stmt statement();
+  static Stmt print_statement();
+  static Stmt expr_statement();
 
   static expr expression();
   static expr equality();

@@ -249,6 +249,30 @@ src/parser.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/parser.cpp.s
 .PHONY : src/parser.cpp.s
 
+src/statements.o: src/statements.cpp.o
+.PHONY : src/statements.o
+
+# target to build an object file
+src/statements.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/statements.cpp.o
+.PHONY : src/statements.cpp.o
+
+src/statements.i: src/statements.cpp.i
+.PHONY : src/statements.i
+
+# target to preprocess a source file
+src/statements.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/statements.cpp.i
+.PHONY : src/statements.cpp.i
+
+src/statements.s: src/statements.cpp.s
+.PHONY : src/statements.s
+
+# target to generate assembly for a file
+src/statements.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/statements.cpp.s
+.PHONY : src/statements.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -273,6 +297,9 @@ help:
 	@echo "... src/parser.o"
 	@echo "... src/parser.i"
 	@echo "... src/parser.s"
+	@echo "... src/statements.o"
+	@echo "... src/statements.i"
+	@echo "... src/statements.s"
 .PHONY : help
 
 

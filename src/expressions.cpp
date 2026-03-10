@@ -1,4 +1,5 @@
 #include "expressions.h"
+#include "executing.h"
 #include "lexer.h"
 #include <memory>
 #include <variant>
@@ -65,119 +66,129 @@ literal_t LitOp::if_true_over(std::string lit) {return literal_t(TRUE);}
 
 // oh my fucking god that's gonna be awful kill me
 // please if someone who knows how to programm this normally tell me because i'm about to go crazy
+//
+// me the day after: operator overloading exists
+// fuck it, it works, i don't care
+//
+// TODO: optimize the fuck out of this shit
 literal_t LitOp::add(literal_t lit1, literal_t lit2) {
-  if (auto val1 = std::get_if<int>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t((*val1) + (*val2));
-    } else if (auto val2 = std::get_if<double>(&lit1)) {
-      return literal_t(*val1 + *val2);
-    }
-  } else if (auto val1 = std::get_if<double>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t(*val1 + *val2);
-    } else if (auto val2 = std::get_if<double>(&lit2)) {
-      return literal_t(*val1 + *val2);
-    }
+  switch (lit1.index()) {
+    case INT_T:
+      switch (lit2.index()) {
+        case INT_T: return std::get<int>(lit1) + std::get<int>(lit2);
+        case DOUBLE:return std::get<int>(lit1) + std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case DOUBLE:
+      switch (lit2.index()) {
+        case INT_T:return std::get<double>(lit1) + std::get<int>(lit2);
+        case DOUBLE:return std::get<double>(lit1) + std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
   return 0;
 }
 literal_t LitOp::sub(literal_t lit1, literal_t lit2) {
-  if (auto val1 = std::get_if<int>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t(*val1 - *val2);
-    } else if (auto val2 = std::get_if<double>(&lit2)) {
-      return literal_t(*val1 - *val2);
-    }
-  } else if (auto val1 = std::get_if<double>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t(*val1 - *val2);
-    } else if (auto val2 = std::get_if<double>(&lit2)) {
-      return literal_t(*val1 - *val2);
-    }
+  switch (lit1.index()) {
+    case INT_T:
+      switch (lit2.index()) {
+        case INT_T: return std::get<int>(lit1) - std::get<int>(lit2);
+        case DOUBLE:return std::get<int>(lit1) - std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case DOUBLE:
+      switch (lit2.index()) {
+        case INT_T:return std::get<double>(lit1) - std::get<int>(lit2);
+        case DOUBLE:return std::get<double>(lit1) - std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
   return 0;
 }
 literal_t LitOp::mul(literal_t lit1, literal_t lit2) {
-  if (auto val1 = std::get_if<int>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t(*val1 * *val2);
-    } else if (auto val2 = std::get_if<double>(&lit2)) {
-      return literal_t(*val1 * *val2);
-    }
-  } else if (auto val1 = std::get_if<double>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t(*val1 * *val2);
-    } else if (auto val2 = std::get_if<double>(&lit2)) {
-      return literal_t(*val1 * *val2);
-    }
+  switch (lit1.index()) {
+    case INT_T:
+      switch (lit2.index()) {
+        case INT_T: return std::get<int>(lit1) * std::get<int>(lit2);
+        case DOUBLE:return std::get<int>(lit1) * std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case DOUBLE:
+      switch (lit2.index()) {
+        case INT_T:return std::get<double>(lit1) * std::get<int>(lit2);
+        case DOUBLE:return std::get<double>(lit1) * std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
   return 0;
 }
 literal_t LitOp::div(literal_t lit1, literal_t lit2) {
-  if (auto val1 = std::get_if<int>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t(*val1 / *val2);
-    } else if (auto val2 = std::get_if<double>(&lit2)) {
-      return literal_t(*val1 / *val2);
-    }
-  } else if (auto val1 = std::get_if<double>(&lit1)) {
-    if (auto val2 = std::get_if<int>(&lit2)) {
-      return literal_t(*val1 / *val2);
-    } else if (auto val2 = std::get_if<double>(&lit2)) {
-      return literal_t(*val1 / *val2);
-    }
+  switch (lit1.index()) {
+    case INT_T:
+      switch (lit2.index()) {
+        case INT_T:
+          if (std::get<int>(lit2) == 0) goto err_div_zero;
+          return std::get<int>(lit1) / std::get<int>(lit2);
+        case DOUBLE: 
+          if (std::get<int>(lit2) == 0) goto err_div_zero;
+          return std::get<int>(lit1) / std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case DOUBLE:
+      switch (lit2.index()) {
+        case INT_T:
+          if (std::get<int>(lit2) == 0) goto err_div_zero;
+          return std::get<double>(lit1) / std::get<int>(lit2);
+        case DOUBLE: 
+          if (std::get<double>(lit2) == 0) goto err_div_zero;
+          return std::get<double>(lit1) / std::get<double>(lit2);
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
   return 0;
+err_div_zero:
+  return _NULL; // then we'll just check for this value and depending on this throw a runtime error
 }
 literal_t LitOp::if_equal(literal_t lit1, literal_t lit2) {
   if (lit1 == lit2) return literal_t(TRUE);
   return literal_t(FALSE);
 }
 literal_t LitOp::greater(literal_t first, literal_t second) {
-  if (std::holds_alternative<int>(first) && std::holds_alternative<int>(second)) {
-    if (std::get<int>(first) >= std::get<int>(second)) return literal_t(TRUE);
-  }
-  if (std::holds_alternative<double>(first) && std::holds_alternative<double>(second)) {
-    if (std::get<double>(first) >= std::get<double>(second)) return literal_t(TRUE) ;
-  }
-  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second)) {
+  if (is_numbers(first, second))
+    return bool_make_lit(first > second);
+  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() > std::get<std::string>(second).length()) return literal_t(TRUE);
-  }
   return literal_t(FALSE);
 }
 literal_t LitOp::greater_equal(literal_t first, literal_t second) {
-  if (std::holds_alternative<int>(first) && std::holds_alternative<int>(second)) {
-    if (std::get<int>(first) >= std::get<int>(second)) return literal_t(TRUE);
-  }
-  if (std::holds_alternative<double>(first) && std::holds_alternative<double>(second)) {
-    if (std::get<double>(first) >= std::get<double>(second)) return literal_t(TRUE);
-  }
-  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second)) {
+  if (is_numbers(first, second))
+    return bool_make_lit(first >= second);
+  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() >= std::get<std::string>(second).length()) return literal_t(TRUE);
-  }
   return literal_t(FALSE);
 }
 literal_t LitOp::less(literal_t first, literal_t second) {
-  if (std::holds_alternative<int>(first) && std::holds_alternative<int>(second)) {
-    if (std::get<int>(first) < std::get<int>(second)) return literal_t(TRUE);
-  }
-  if (std::holds_alternative<double>(first) && std::holds_alternative<double>(second)) {
-    if (std::get<double>(first) < std::get<double>(second)) return literal_t(TRUE);
-  }
-  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second)) {
+  if (is_numbers(first, second))
+    return bool_make_lit(first < second);
+  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() < std::get<std::string>(second).length()) return literal_t(TRUE);
-  }
   return literal_t(FALSE);
 }
 literal_t LitOp::less_equal(literal_t first, literal_t second) {
-  if (std::holds_alternative<int>(first) && std::holds_alternative<int>(second)) {
-    if (std::get<int>(first) <= std::get<int>(second)) return literal_t(TRUE);
-  }
-  if (std::holds_alternative<double>(first) && std::holds_alternative<double>(second)) {
-    if (std::get<double>(first) <= std::get<double>(second)) return literal_t(TRUE);
-  }
-  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second)) {
+  if (is_numbers(first, second))
+    return bool_make_lit(first <= second);
+  if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() <= std::get<std::string>(second).length()) return literal_t(TRUE);
-  }
+
+  if (first <= second) return FALSE;
   return literal_t(FALSE);
+}
+
+bool LitOp::is_numbers(literal_t lit1, literal_t lit2) {
+  return ((LitOp::contains<int>(lit1) || LitOp::contains<double>(lit1)) &&
+          (LitOp::contains<int>(lit2) || LitOp::contains<double>(lit2)));
 }

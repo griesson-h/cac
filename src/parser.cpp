@@ -2,6 +2,7 @@
 #include "expressions.h"
 #include "interpreter.h"
 #include "lexer.h"
+#include "statements.h"
 #include <memory>
 #include <sstream>
 #include <vector>
@@ -9,12 +10,16 @@
 
 int Parser::current = 0;
 
-expr Parser::parse() {
+std::vector<Stmt> Parser::parse() {
   current = 0;
+  std::vector<Stmt> statements;
   try {
-    return expression();
+    while (!__EOF()) {
+      statements.push_back(statement());
+    }
+    return statements;
   } catch(Error::ParseError err) {
-    return Literal(literal_t(_NULL));
+    return std::vector<Stmt>();
   }
 }
 
@@ -38,6 +43,25 @@ void Parser::synchronize() {
     current++;
   }
 }
+
+Stmt Parser::statement() {
+  if (match(PRINT)) {current++; return print_statement();}
+
+  return expr_statement();
+}
+
+Stmt Parser::print_statement() {
+  expr arg = expression();
+  Error::consume(SEMI, "Expected ';' after expression");
+  return Stmt(PrintStmt(arg));
+}
+
+Stmt Parser::expr_statement() {
+  expr arg = expression();
+  Error::consume(SEMI, "Expected ';' after expression");
+  return Stmt(ExprStmt(arg));
+}
+
 
 expr Parser::expression() {
   return equality();
@@ -155,40 +179,7 @@ Token Parser::Error::consume(token_type type, const char* msg) {
   throw error(tokens[current], msg);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* ---------------------------------------------------------- */
 
 std::string PreatyPrinter::print(expr expr) {
   return std::visit([&](auto&& value){return print_over(value);}, expr);

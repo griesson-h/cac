@@ -24,10 +24,13 @@ enum token_type {
   FOR, WHILE, IF, ELSE,
   VAR, FUNC, CLASS,
   TRUE, FALSE, THIS, _NULL,
-  RETURN, _EOF
+  RETURN, _EOF, PRINT
 };
 
 using literal_t = std::variant<token_type, int, double, std::string>;
+enum literal_type {
+  RESERV, INT_T, DOUBLE, STRING_T
+};
 
 struct Token {
     const token_type type;

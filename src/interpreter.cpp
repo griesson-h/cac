@@ -15,6 +15,7 @@
 #include "lexer.h"
 
 bool failed = false;
+bool failed_at_runtime = false;
 
 void SIGINT_handler(int s) {
   std::cout << '\n';
@@ -34,6 +35,11 @@ void report(Token token, const char* message) {
     report(token.line, message, ss.str().c_str());
   }
 }
+void report_at_runtime(Token token, const char* msg, const char* file) {
+  std::cout << "<file " << file << ", line " << token.line << "> "
+    << "\nRUNTIME ERROR: " << msg << std::endl;
+  failed_at_runtime = true;
+}
 
 void run(std::string bytes) {
   //const char* errorm = "ur too stoopid lmao lol\n";
@@ -49,6 +55,8 @@ void run(std::string bytes) {
 //  for (int i = 0; i < tokens.size(); ++i) std::cout << tokens[i] << std::endl;
   if (failed) return;
 
+  std::cout << "------------debug------------" << std::endl;
+
   lex_tokens(bytes);
   int i = 0;
   for (auto token : tokens) {
@@ -56,10 +64,13 @@ void run(std::string bytes) {
     i++;
   }
   if (failed) return;
-  expr ex = Parser::parse();
+  std::vector<Stmt> programm = Parser::parse();
   if (failed) return;
 
-  Interpreter::interpret(ex);
+  std::cout << "------------output------------" << std::endl;
+
+  Interpreter::interpret(programm);
+  if (failed_at_runtime) return;
 
   //std::cout << std::get<Binary>(ex).first->index() << std::endl;
   
@@ -100,11 +111,12 @@ void run_cmd() {
     std::cout << "cac-cmd > ";
     std::string line;
     std::getline(std::cin, line);
-    if (line == "clear") system("clear");
+    if (line == "clear") {std::cout << "\033[2J\033[1;1H"; continue;} // clear and move the cursor to the top left
     if (line == "exit") break;
     run(line);
-    /*TEMP*/tokens.clear();
+    /*(maybe)TEMP*/tokens.clear();
     failed = false;
+    failed_at_runtime = false;
   }
 }
 

@@ -10,6 +10,9 @@ struct Binary;
 struct Unary;
 
 using expr = std::variant<Literal, Group, Binary, Unary>;
+enum expr_type {
+  LITERAL, GROUP, BIN, UNARY
+};
 
 struct Literal {
   Literal(literal_t literal);
@@ -53,4 +56,15 @@ struct Unary {
   static literal_t greater_equal(literal_t first, literal_t second);
   static literal_t less(literal_t first, literal_t second);
   static literal_t less_equal(literal_t first, literal_t second);
+
+  template<typename T>
+  inline static bool contains(literal_t lit) { // sorry for a definition in a header linker is just dumb
+    return std::holds_alternative<T>(lit);
+  }
+
+  inline static literal_t bool_make_lit(bool b) {
+    return b ? literal_t(TRUE) : literal_t(FALSE);
+  }
+
+  static bool is_numbers(literal_t lit1, literal_t lit2);
 };

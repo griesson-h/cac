@@ -17,4 +17,5 @@ add_executable(${PROJECT_NAME}
     src/parser.cpp
     src/expressions.cpp
     src/executing.cpp
+    src/statements.cpp
 )

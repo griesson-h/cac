@@ -21,7 +21,8 @@ std::map<std::string, token_type> reserved_keywords = {
   {"false", FALSE},
   {"this", THIS},
   {"null", _NULL},
-  {"return", RETURN}
+  {"return", RETURN},
+  {"zaprintit", PRINT}
 };
 
 Token::Token(token_type i_type, std::string i_lexeme, const literal_t* i_literal, int i_line): type(i_type), lexeme(i_lexeme), line(i_line) {
