@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 
 project(cac)
 set(CMAKE_CXX_COMPILER_ID "GNU")
-set (CMAKE_CXX_STANDARD 26)
-SET(CMAKE_CXX_FLAGS "-Wall")
-SET(CMAKE_CXX_FLAGS_DEBUG "-g")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_BUILD_TYPE Release)
@@ -18,4 +18,5 @@ add_executable(${PROJECT_NAME}
     src/expressions.cpp
     src/executing.cpp
     src/statements.cpp
+    src/environment.cpp
 )

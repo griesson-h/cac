@@ -4,21 +4,27 @@
 #include <variant>
 #include <string>
 
+struct Assign;
 struct Literal;
 struct Group;
 struct Binary;
 struct Unary;
+struct Variable;
 
-using expr = std::variant<Literal, Group, Binary, Unary>;
+using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign>;
 enum expr_type {
   LITERAL, GROUP, BIN, UNARY
 };
 
+struct Assign {
+  Assign(Token identifier, std::shared_ptr<expr> value);
+  Token identifier;
+  std::shared_ptr<expr> value;
+};
 struct Literal {
   Literal(literal_t literal);
   literal_t literal;
 };
-
 struct Group {
   Group(std::shared_ptr<expr> exp);
   std::shared_ptr<expr> exp; // i love you cpp compiler <3 (well now i use shared ptrs but i still love you darling <3)
@@ -34,6 +40,12 @@ struct Unary {
   Token _operator;
   std::shared_ptr<expr> postfix;
 };
+struct Variable {
+  Variable(Token name);
+  Token name;
+};
+
+bool is_not_null_expr(expr ex);
 
 /*abstact*/ struct LitOp {
   static std::string literal_to_string(literal_t lit);

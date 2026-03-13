@@ -43,6 +43,7 @@ struct Token {
     std::string to_string();
 };
 
+extern Token null_token;
 extern std::vector<Token> tokens;
 extern std::map<std::string, token_type> reserved_keywords;
 

@@ -1,11 +1,17 @@
 #include "executing.h"
+#include "environment.h"
 #include "expressions.h"
 #include "interpreter.h"
 #include "lexer.h"
 #include "statements.h"
+#include <exception>
 #include <iostream>
+#include <memory>
 #include <variant>
 #include <vector>
+
+std::unique_ptr<Environment> Interpreter::env(new Environment);
+std::unique_ptr<Environment> Interpreter::backup_env(nullptr);
 
 void Interpreter::interpret(std::vector<Stmt> statements) {
   try {
@@ -13,6 +19,8 @@ void Interpreter::interpret(std::vector<Stmt> statements) {
       execute(statement);
     }
   } catch(RuntimeError e) {
+    if (!backup_env) backup_env.swap(env);
+    backup_env = nullptr;
     report_at_runtime(e.token, e.what());
   }
 }
@@ -21,6 +29,9 @@ void Interpreter::execute(Stmt stmt) {
   std::visit([&](auto&& value){execute_over(value);}, stmt);
 }
 
+void Interpreter::execute_over(std::monostate) {
+  throw RuntimeError(null_token, "Somehow parser didn't throw a ParseError when failed");
+}
 void Interpreter::execute_over(PrintStmt stmt) {
   literal_t arg = evaluate(stmt.exp);
   std::cout << LitOp::literal_to_string(arg);
@@ -28,6 +39,25 @@ void Interpreter::execute_over(PrintStmt stmt) {
 }
 void Interpreter::execute_over(ExprStmt stmt) {
   evaluate(stmt.exp);
+}
+void Interpreter::execute_over(Var stmt) {
+  literal_t value = _NULL;
+  if (is_not_null_expr(stmt.initializer)) {
+    value = evaluate(stmt.initializer);
+  }
+
+  env->define(stmt.name, value);
+}
+void Interpreter::execute_over(Block stmt) {
+  Environment new_env;
+  if (!backup_env)
+    backup_env.swap(env);
+  env = std::make_unique<Environment>(new_env);
+  for (auto statement : stmt.stmts) {
+    execute(statement);
+  }
+  backup_env.swap(env);
+  backup_env = nullptr;
 }
 
 
@@ -111,7 +141,17 @@ literal_t Interpreter::evaluate_over(Binary ex) {
 err_not_number:
   throw RuntimeError(ex._operator, "Operants must be numbers");
 }
-Interpreter::RuntimeError::RuntimeError(Token token, const char* msg) : token(token), msg(msg) {}
+Interpreter::RuntimeError::RuntimeError(Token token, std::string msg) : token(token), msg(msg) {}
 const char* Interpreter::RuntimeError::what() const noexcept {
-  return msg;
+  return msg.c_str();
+}
+
+literal_t Interpreter::evaluate_over(Variable ex) {
+  return env->get(ex.name);
+}
+
+literal_t Interpreter::evaluate_over(Assign ex) {
+  literal_t value = evaluate(*ex.value);
+  env->assign(ex.identifier, value);
+  return value;
 }

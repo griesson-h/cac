@@ -24,6 +24,7 @@ std::map<std::string, token_type> reserved_keywords = {
   {"return", RETURN},
   {"zaprintit", PRINT}
 };
+Token null_token = Token(_NULL, "", nullptr, 0);
 
 Token::Token(token_type i_type, std::string i_lexeme, const literal_t* i_literal, int i_line): type(i_type), lexeme(i_lexeme), line(i_line) {
   if (!i_literal) return;
@@ -171,6 +172,7 @@ std::vector<Token> lex_tokens(const std::string source) {
       case '\t':
         break;
       case '\n':
+        std::cout << "NEWLINE" << std::endl;
         current_line++;
         break;
       default:

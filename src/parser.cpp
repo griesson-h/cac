@@ -5,6 +5,7 @@
 #include "statements.h"
 #include <memory>
 #include <sstream>
+#include <variant>
 #include <vector>
 #include <iostream>
 
@@ -13,18 +14,14 @@ int Parser::current = 0;
 std::vector<Stmt> Parser::parse() {
   current = 0;
   std::vector<Stmt> statements;
-  try {
-    while (!__EOF()) {
-      statements.push_back(statement());
-    }
-    return statements;
-  } catch(Error::ParseError err) {
-    return std::vector<Stmt>();
+  while (!__EOF()) {
+    statements.push_back(declaration());
   }
+  return statements;
 }
 
 void Parser::synchronize() {
-  current++;
+  if (!__EOF()) current++;
 
   while(!__EOF()) {
     if (tokens[current - 1].type == SEMI) return;
@@ -44,27 +41,80 @@ void Parser::synchronize() {
   }
 }
 
+Stmt Parser::declaration() {
+  try {
+    if (match(VAR)) {current++; return var_decl();}
+    return statement();
+  } catch (Error::ParseError err) {
+    failed = true;
+    synchronize();
+    return std::monostate();
+  }
+}
+Stmt Parser::var_decl() {
+  Token ident = Error::consume(IDENT, "Expected identifier after 'var' token");
+
+  expr initializer = Literal(literal_t(_NULL));
+  if (match(EQUAL)) {
+    current++;
+    initializer = expression();
+  }
+
+  Error::consume(SEMI, "Expected ';' after expression");
+  return Var(ident, initializer);
+}
+
 Stmt Parser::statement() {
   if (match(PRINT)) {current++; return print_statement();}
+  if (match(LEFT_BRACE)) {current++; return Block(block_statement());}
 
   return expr_statement();
 }
 
 Stmt Parser::print_statement() {
   expr arg = expression();
-  Error::consume(SEMI, "Expected ';' after expression");
+  Error::consume(SEMI, "Expected ';' after statement");
   return Stmt(PrintStmt(arg));
 }
 
 Stmt Parser::expr_statement() {
   expr arg = expression();
-  Error::consume(SEMI, "Expected ';' after expression");
+  Error::consume(SEMI, "Expected ';' after statement");
   return Stmt(ExprStmt(arg));
+}
+
+std::vector<Stmt> Parser::block_statement() {
+  std::vector<Stmt> statements;
+
+  while(!match(RIGHT_BRACE) && !__EOF()) {
+    statements.push_back(declaration());
+  }
+
+  Error::consume(RIGHT_BRACE, "Expected '}' after block statement");
+  return statements;
 }
 
 
 expr Parser::expression() {
-  return equality();
+  return assignment();
+}
+
+expr Parser::assignment() {
+  expr ex = equality();
+
+  if (match(EQUAL)) {
+    Token token_to_report = tokens[current];
+    current++;
+    expr value = assignment();
+
+    if (std::holds_alternative<Variable>(ex)) {
+      Token identifier = std::get<Variable>(ex).name;
+      return Assign(identifier, std::make_shared<expr>(value));
+    }
+
+    Error::error(token_to_report, "holy fucking shit i wanna sleep");
+  }
+  return ex;
 }
 
 expr Parser::equality() {
@@ -74,7 +124,8 @@ expr Parser::equality() {
     current++;
     expr right = comparision();
     expr exT = ex;
-    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+    // we redefine ex each time because when it tries to assign the previous ex to the new binary expr bad shit happens
+    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
     return ex;
   }
   return ex;
@@ -89,7 +140,7 @@ expr Parser::comparision() {
     current++;
     expr right = term();
     expr exT = ex;
-    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
     return ex;
   }
   return ex;
@@ -104,7 +155,8 @@ expr Parser::term() {
     current++;
     expr right = factor();
     expr exT = ex;
-    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+    return ex;
   }
   return ex;
 }
@@ -116,7 +168,8 @@ expr Parser::factor() {
     current++;
     expr right = unary();
     expr exT = ex;
-    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+    return ex;
   }
   return ex;
 }
@@ -146,6 +199,11 @@ expr Parser::primary() {
     expr ex = expression();
     Error::consume(RIGHT_PARENTH, "Expected ')' after group expression");
     return Group(std::make_shared<expr>(ex));
+  }
+
+  if (match(IDENT)) {
+    current++;
+    return Variable(tokens[current-1]);
   }
 
   std::stringstream ss;
@@ -205,6 +263,12 @@ std::string PreatyPrinter::print_over(Unary expr) {
   std::vector<::expr> vec;
   vec.push_back(*expr.postfix);
   return parenthesize(expr._operator.lexeme.c_str(), vec);
+}
+std::string PreatyPrinter::print_over(Variable expr) {
+  return expr.name.lexeme;
+}
+std::string PreatyPrinter::print_over(Assign expr) {
+  return "Sada";
 }
 
 // there's probably more efficient way to do this but i'm just so tired of c++'s variadic functions

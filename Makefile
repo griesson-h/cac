@@ -129,6 +129,30 @@ cac/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/build
 .PHONY : cac/fast
 
+src/environment.o: src/environment.cpp.o
+.PHONY : src/environment.o
+
+# target to build an object file
+src/environment.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/environment.cpp.o
+.PHONY : src/environment.cpp.o
+
+src/environment.i: src/environment.cpp.i
+.PHONY : src/environment.i
+
+# target to preprocess a source file
+src/environment.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/environment.cpp.i
+.PHONY : src/environment.cpp.i
+
+src/environment.s: src/environment.cpp.s
+.PHONY : src/environment.s
+
+# target to generate assembly for a file
+src/environment.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/environment.cpp.s
+.PHONY : src/environment.cpp.s
+
 src/executing.o: src/executing.cpp.o
 .PHONY : src/executing.o
 
@@ -282,6 +306,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... cac"
+	@echo "... src/environment.o"
+	@echo "... src/environment.i"
+	@echo "... src/environment.s"
 	@echo "... src/executing.o"
 	@echo "... src/executing.i"
 	@echo "... src/executing.s"

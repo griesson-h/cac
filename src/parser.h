@@ -14,10 +14,15 @@ private:
 
   static void synchronize();
 
+  static Stmt declaration();
+  static Stmt var_decl();
+
   static Stmt statement();
   static Stmt print_statement();
   static Stmt expr_statement();
+  static std::vector<Stmt> block_statement();
 
+  static expr assignment();
   static expr expression();
   static expr equality();
   static expr comparision();
@@ -51,5 +56,7 @@ private:
   static std::string print_over(Group expr);
   static std::string print_over(Binary expr);
   static std::string print_over(Unary expr);
+  static std::string print_over(Variable expr);
+  static std::string print_over(Assign expr);
   static std::string parenthesize(const char* name, std::vector<expr> Exprs);
 };

@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <csignal>
 #include "executing.h"
-#include "expressions.h"
 #include "parser.h"
 #include "interpreter.h"
 #include "lexer.h"
@@ -35,7 +34,7 @@ void report(Token token, const char* message) {
     report(token.line, message, ss.str().c_str());
   }
 }
-void report_at_runtime(Token token, const char* msg, const char* file) {
+void report_at_runtime(Token token, std::string msg, const char* file) {
   std::cout << "<file " << file << ", line " << token.line << "> "
     << "\nRUNTIME ERROR: " << msg << std::endl;
   failed_at_runtime = true;
@@ -63,9 +62,15 @@ void run(std::string bytes) {
     std::cout << std::endl << token.to_string() << '\t' << "id: " << i << std::endl;
     i++;
   }
-  if (failed) return;
+  if (failed) {
+    std::cout << "Lexer failed, aborting\n";
+    return;
+  }
   std::vector<Stmt> programm = Parser::parse();
-  if (failed) return;
+  if (failed) {
+    std::cout << "Parser failed, aborting\n";
+    return;
+  }
 
   std::cout << "------------output------------" << std::endl;
 
@@ -96,9 +101,9 @@ void run_script(char* source) {
   std::string temp;
   std::stringstream bytes;
   while (std::getline(bytestream, temp)) {
-    if (temp.empty()) {
-      break;
-    }
+//    if (temp.empty()) {
+//      break;
+//    }
     bytes << temp << '\n';
   }
   bytestream.close();

@@ -1,3 +1,6 @@
-zaprintit 2 == 2;
-zaprintit 23+34;
-zaprintit 1/0;
+var a = 2;
+{
+    var a = 3;
+    zaprintit a;
+}
+zaprintit a;

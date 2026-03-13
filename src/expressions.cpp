@@ -1,10 +1,12 @@
 #include "expressions.h"
-#include "executing.h"
 #include "lexer.h"
 #include <memory>
 #include <variant>
 #include <iostream>
 
+Assign::Assign(Token identifier, std::shared_ptr<expr> value) : identifier(identifier) {
+  value.swap(this->value);
+}
 Literal::Literal(literal_t literal) : literal(literal) {}
 Group::Group(std::shared_ptr<::expr> exp) {
   exp.swap(this->exp);
@@ -15,6 +17,17 @@ Binary::Binary(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token 
 }
 Unary::Unary(Token _operator, std::shared_ptr<expr> postfix) : _operator(_operator) {
   postfix.swap(this->postfix);
+}
+Variable::Variable(Token name) : name(name) {}
+
+bool is_not_null_expr(expr ex) { // that's a BAD way of saying something is null but, uh, here we are
+  switch (ex.index()) {          // basicly if it's just 'Literal(literal_t(_NULL))' then true but very verbose because c++
+    case LITERAL:
+      switch (std::get<Literal>(ex).literal.index()) {
+        case RESERV: switch (std::get<token_type>(std::get<Literal>(ex).literal)) {case _NULL: return false; default: break;} default: break;
+      }
+  }
+  return true;
 }
 
 std::string LitOp::literal_to_string(literal_t lit) {
@@ -68,6 +81,7 @@ literal_t LitOp::if_true_over(std::string lit) {return literal_t(TRUE);}
 // please if someone who knows how to programm this normally tell me because i'm about to go crazy
 //
 // me the day after: operator overloading exists
+//
 // fuck it, it works, i don't care
 //
 // TODO: optimize the fuck out of this shit
@@ -79,6 +93,7 @@ literal_t LitOp::add(literal_t lit1, literal_t lit2) {
         case DOUBLE:return std::get<int>(lit1) + std::get<double>(lit2);
         case STRING_T: break;
       }
+      break;
     case DOUBLE:
       switch (lit2.index()) {
         case INT_T:return std::get<double>(lit1) + std::get<int>(lit2);
@@ -97,6 +112,7 @@ literal_t LitOp::sub(literal_t lit1, literal_t lit2) {
         case DOUBLE:return std::get<int>(lit1) - std::get<double>(lit2);
         case STRING_T: break;
       }
+      break;
     case DOUBLE:
       switch (lit2.index()) {
         case INT_T:return std::get<double>(lit1) - std::get<int>(lit2);
@@ -115,6 +131,7 @@ literal_t LitOp::mul(literal_t lit1, literal_t lit2) {
         case DOUBLE:return std::get<int>(lit1) * std::get<double>(lit2);
         case STRING_T: break;
       }
+      break;
     case DOUBLE:
       switch (lit2.index()) {
         case INT_T:return std::get<double>(lit1) * std::get<int>(lit2);
@@ -133,10 +150,11 @@ literal_t LitOp::div(literal_t lit1, literal_t lit2) {
           if (std::get<int>(lit2) == 0) goto err_div_zero;
           return std::get<int>(lit1) / std::get<int>(lit2);
         case DOUBLE: 
-          if (std::get<int>(lit2) == 0) goto err_div_zero;
+          if (std::get<double>(lit2) == 0) goto err_div_zero;
           return std::get<int>(lit1) / std::get<double>(lit2);
         case STRING_T: break;
       }
+      break;
     case DOUBLE:
       switch (lit2.index()) {
         case INT_T:
