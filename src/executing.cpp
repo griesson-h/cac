@@ -10,8 +10,8 @@
 #include <variant>
 #include <vector>
 
-std::unique_ptr<Environment> Interpreter::env(new Environment);
-std::unique_ptr<Environment> Interpreter::backup_env(nullptr);
+std::shared_ptr<Environment> Interpreter::env(new Environment);
+std::shared_ptr<Environment> Interpreter::backup_env(nullptr);
 
 void Interpreter::interpret(std::vector<Stmt> statements) {
   try {
@@ -52,11 +52,11 @@ void Interpreter::execute_over(Block stmt) {
   Environment new_env;
   if (!backup_env)
     backup_env.swap(env);
-  env = std::make_unique<Environment>(new_env);
+  env = std::make_shared<Environment>(new_env);
   for (auto statement : stmt.stmts) {
     execute(statement);
   }
-  backup_env.swap(env);
+  if (backup_env) backup_env.swap(env);
   backup_env = nullptr;
 }
 

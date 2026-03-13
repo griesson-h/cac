@@ -2,5 +2,9 @@ var a = 2;
 {
     var a = 3;
     zaprintit a;
+    {
+        var a = 1;
+        zaprintit a;
+    }
 }
 zaprintit a;

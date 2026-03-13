@@ -22,8 +22,8 @@ public:
     const char* what() const noexcept;
   };
 private:
-  static std::unique_ptr<Environment> env;
-  static std::unique_ptr<Environment> backup_env; // pointer to the global environment to recover it after block statement/s
+  static std::shared_ptr<Environment> env;
+  static std::shared_ptr<Environment> backup_env; // pointer to the global environment to recover it after block statement/s
 
   static void execute(Stmt stmt);
   static void execute_over(std::monostate);
