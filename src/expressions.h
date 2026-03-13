@@ -10,8 +10,9 @@ struct Group;
 struct Binary;
 struct Unary;
 struct Variable;
+struct LogicalBin;
 
-using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign>;
+using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin>;
 enum expr_type {
   LITERAL, GROUP, BIN, UNARY
 };
@@ -44,6 +45,12 @@ struct Variable {
   Variable(Token name);
   Token name;
 };
+struct LogicalBin {
+  LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token _operator);
+  std::shared_ptr<expr> first;
+  Token _operator;
+  std::shared_ptr<expr> second;
+};
 
 bool is_not_null_expr(expr ex);
 
@@ -51,11 +58,13 @@ bool is_not_null_expr(expr ex);
   static std::string literal_to_string(literal_t lit);
   static literal_t negative(literal_t lit);
 
-  static literal_t if_true(literal_t lit);
-  static literal_t if_true_over(token_type lit);
-  static literal_t if_true_over(int lit);
-  static literal_t if_true_over(double lit);
-  static literal_t if_true_over(std::string lit);
+  static bool if_true(literal_t lit);
+  static bool if_true_over(token_type lit);
+  static bool if_true_over(int lit);
+  static bool if_true_over(double lit);
+  static bool if_true_over(std::string lit);
+
+  static literal_t cac_bool(bool b);
   
   static literal_t add(literal_t lit1, literal_t li2);
   static literal_t sub(literal_t lit1, literal_t li2);

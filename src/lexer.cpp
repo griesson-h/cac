@@ -22,7 +22,9 @@ std::map<std::string, token_type> reserved_keywords = {
   {"this", THIS},
   {"null", _NULL},
   {"return", RETURN},
-  {"zaprintit", PRINT}
+  {"zaprintit", PRINT},
+  {"break", BREAK},
+  {"continue", CONTINUE}
 };
 Token null_token = Token(_NULL, "", nullptr, 0);
 

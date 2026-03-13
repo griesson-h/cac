@@ -20,7 +20,7 @@ void Interpreter::interpret(std::vector<Stmt> statements) {
     }
   } catch(RuntimeError e) {
     if (!backup_env) backup_env.swap(env);
-    backup_env = nullptr;
+    backup_env.reset();
     report_at_runtime(e.token, e.what());
   }
 }
@@ -49,15 +49,27 @@ void Interpreter::execute_over(Var stmt) {
   env->define(stmt.name, value);
 }
 void Interpreter::execute_over(Block stmt) {
-  Environment new_env;
+  Environment new_env(env);
   if (!backup_env)
     backup_env.swap(env);
   env = std::make_shared<Environment>(new_env);
   for (auto statement : stmt.stmts) {
     execute(statement);
   }
-  if (backup_env) backup_env.swap(env);
-  backup_env = nullptr;
+  if (env->enclosing) env->enclosing.swap(env);
+}
+
+void Interpreter::execute_over(IfStmt stmt) {
+  if (LitOp::if_true(evaluate(stmt.condition))) {
+    execute(*stmt.then);
+  } else if (stmt.elsestmt) {
+    execute(*stmt.elsestmt);
+  }
+}
+void Interpreter::execute_over(While stmt) {
+  while (LitOp::if_true(evaluate(stmt.condition))) {
+    execute(*stmt.body);
+  }
 }
 
 
@@ -82,7 +94,7 @@ literal_t Interpreter::evaluate_over(Unary ex) {
       return LitOp::negative(right);
       break;
     case EXCL:
-      return LitOp::negative(LitOp::if_true(right));
+      return LitOp::negative(LitOp::cac_bool(LitOp::if_true(right)));
     default:
       break;
   }
@@ -154,4 +166,15 @@ literal_t Interpreter::evaluate_over(Assign ex) {
   literal_t value = evaluate(*ex.value);
   env->assign(ex.identifier, value);
   return value;
+}
+literal_t Interpreter::evaluate_over(LogicalBin ex) {
+  literal_t first = evaluate(ex.first);
+
+  if (ex._operator.type == OR) {
+    if (LitOp::if_true(first)) return first;
+  } else {
+    if (!LitOp::if_true(first)) return first;
+  }
+
+  return evaluate(ex.second);
 }

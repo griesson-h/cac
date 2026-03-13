@@ -31,6 +31,8 @@ private:
   static void execute_over(ExprStmt stmt);
   static void execute_over(Var stmt);
   static void execute_over(Block stmt);
+  static void execute_over(IfStmt stmt);
+  static void execute_over(While stmt);
 
   static literal_t evaluate(expr ex);
   static literal_t evaluate_over(Literal ex);
@@ -39,4 +41,5 @@ private:
   static literal_t evaluate_over(Unary ex);
   static literal_t evaluate_over(Variable ex);
   static literal_t evaluate_over(Assign ex);
+  static literal_t evaluate_over(LogicalBin ex);
 };

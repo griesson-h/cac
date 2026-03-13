@@ -24,7 +24,8 @@ enum token_type {
   FOR, WHILE, IF, ELSE,
   VAR, FUNC, CLASS,
   TRUE, FALSE, THIS, _NULL,
-  RETURN, _EOF, PRINT
+  RETURN, _EOF, PRINT,
+  BREAK, CONTINUE
 };
 
 using literal_t = std::variant<token_type, int, double, std::string>;

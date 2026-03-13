@@ -67,6 +67,9 @@ Stmt Parser::var_decl() {
 Stmt Parser::statement() {
   if (match(PRINT)) {current++; return print_statement();}
   if (match(LEFT_BRACE)) {current++; return Block(block_statement());}
+  if (match(IF)) {current++; return if_statement();}
+  if (match(WHILE)) {current++; return while_statement();}
+  if (match(FOR)) {current++; return for_statement();}
 
   return expr_statement();
 }
@@ -94,13 +97,99 @@ std::vector<Stmt> Parser::block_statement() {
   return statements;
 }
 
+Stmt Parser::if_statement() {
+  bool parenthesized = false;
+  if (match(LEFT_PARENTH)) {
+    current++;
+    parenthesized = true;
+  }
+
+  expr condition = expression();
+  if (parenthesized) 
+    Error::consume(RIGHT_PARENTH, "Expected ')' after parenthesized if condition");
+
+  Stmt then = statement();
+  std::shared_ptr<Stmt> elsestmt = nullptr;
+  if (match(ELSE)) {
+    current++;
+    elsestmt = std::make_shared<Stmt>(statement());
+  }
+  return IfStmt(condition, std::make_shared<Stmt>(then),elsestmt);
+}
+
+Stmt Parser::while_statement() {
+  bool parenthesized = false;
+  if (match(LEFT_PARENTH)) {
+    current++;
+    parenthesized = true;
+  }
+
+  expr condition = expression();
+  if (parenthesized) 
+    Error::consume(RIGHT_PARENTH, "Expected ')' after parenthesized while condition");
+
+  Stmt body = statement();
+  return While(condition, std::make_shared<Stmt>(body));
+}
+
+Stmt Parser::for_statement() {
+  bool parenthesized = false;
+  if (match(LEFT_PARENTH)) {
+    current++;
+    parenthesized = true;
+  }
+
+  std::shared_ptr<Stmt> initializer;
+  if (match(VAR)) {
+    current++;
+    initializer = std::make_shared<Stmt>(var_decl());
+  } else if (match(SEMI)) {
+    current++;
+    initializer = nullptr;
+  } else {
+    initializer = std::make_shared<Stmt>(expr_statement());
+  }
+
+  expr condition = Literal(literal_t(TRUE));
+  if (!match(SEMI)) {
+    condition = expression();
+  }
+  Error::consume(SEMI, "Expected ';' after condition");
+
+  expr increment = Literal(literal_t(_NULL));
+  if (!match(RIGHT_PARENTH)) {
+    increment = expression();
+  }
+  if (parenthesized)
+    Error::consume(RIGHT_PARENTH, "Expected ')' after parenthesized for clauses");
+
+  Stmt body = statement();
+
+  if (is_not_null_expr(increment)) {
+    std::vector<Stmt> stmts;
+    stmts.push_back(body); stmts.push_back(ExprStmt(increment));
+    body = null_stmt;
+    body = Block(stmts);
+  }
+  Stmt body_t = body;
+  body = While(condition, std::make_shared<Stmt>(body_t));
+  if (initializer) {
+    std::vector<Stmt> stmts;
+    stmts.push_back(*initializer); stmts.push_back(body);
+    body = null_stmt;
+    body = Block(stmts);
+  }
+
+  return body;
+}
+
 
 expr Parser::expression() {
   return assignment();
 }
 
 expr Parser::assignment() {
-  expr ex = equality();
+  expr ex = or_expr();
 
   if (match(EQUAL)) {
     Token token_to_report = tokens[current];
@@ -117,16 +206,41 @@ expr Parser::assignment() {
   return ex;
 }
 
+expr Parser::or_expr() {
+  expr ex = and_expr();
+  while (match(OR)) {
+    Token _operator = tokens[current];
+    current++;
+    expr right = and_expr();
+    expr exT = ex;
+    ex = Literal(literal_t(_NULL));
+    ex = LogicalBin(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+  }
+  return ex;
+}
+expr Parser::and_expr() {
+  expr ex = equality();
+  while (match(AND)) {
+    Token _operator = tokens[current];
+    current++;
+    expr right = equality();
+    expr exT = ex;
+    ex = Literal(literal_t(_NULL));
+    ex = LogicalBin(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
+  }
+  return ex;
+}
+
 expr Parser::equality() {
   expr ex = comparision();
-  if (match(EXCL_EQUAL) || match(DOUBLE_EQUAL)) {
+  while (match(EXCL_EQUAL) || match(DOUBLE_EQUAL)) {
     Token _operator = tokens[current];
     current++;
     expr right = comparision();
     expr exT = ex;
-    // we redefine ex each time because when it tries to assign the previous ex to the new binary expr bad shit happens
-    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
-    return ex;
+    // we should assign ex to null expr because variants were made by not very smart people
+    ex = Literal(literal_t(_NULL));
+    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
   }
   return ex;
 }
@@ -140,8 +254,8 @@ expr Parser::comparision() {
     current++;
     expr right = term();
     expr exT = ex;
-    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
-    return ex;
+    ex = Literal(literal_t(_NULL));
+    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
   }
   return ex;
 }
@@ -155,21 +269,21 @@ expr Parser::term() {
     current++;
     expr right = factor();
     expr exT = ex;
-    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
-    return ex;
+    ex = Literal(literal_t(_NULL));
+    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
   }
   return ex;
 }
 
 expr Parser::factor() {
   expr ex = unary();
-  if (match(SLASH) || match(STAR)) {
+  while (match(SLASH) || match(STAR)) {
     Token _operator = tokens[current];
     current++;
     expr right = unary();
     expr exT = ex;
-    expr ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
-    return ex;
+    ex = Literal(literal_t(_NULL));
+    ex = Binary(std::make_shared<expr>(exT), std::make_shared<expr>(right), _operator);
   }
   return ex;
 }
@@ -268,6 +382,9 @@ std::string PreatyPrinter::print_over(Variable expr) {
   return expr.name.lexeme;
 }
 std::string PreatyPrinter::print_over(Assign expr) {
+  return "Sada";
+}
+std::string PreatyPrinter::print_over(LogicalBin expr) {
   return "Sada";
 }
 

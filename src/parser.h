@@ -21,9 +21,14 @@ private:
   static Stmt print_statement();
   static Stmt expr_statement();
   static std::vector<Stmt> block_statement();
+  static Stmt if_statement();
+  static Stmt while_statement();
+  static Stmt for_statement();
 
   static expr assignment();
   static expr expression();
+  static expr or_expr();
+  static expr and_expr();
   static expr equality();
   static expr comparision();
   static expr term();
@@ -58,5 +63,6 @@ private:
   static std::string print_over(Unary expr);
   static std::string print_over(Variable expr);
   static std::string print_over(Assign expr);
+  static std::string print_over(LogicalBin expr);
   static std::string parenthesize(const char* name, std::vector<expr> Exprs);
 };

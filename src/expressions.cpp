@@ -1,4 +1,5 @@
 #include "expressions.h"
+#include "interpreter.h"
 #include "lexer.h"
 #include <memory>
 #include <variant>
@@ -19,6 +20,10 @@ Unary::Unary(Token _operator, std::shared_ptr<expr> postfix) : _operator(_operat
   postfix.swap(this->postfix);
 }
 Variable::Variable(Token name) : name(name) {}
+LogicalBin::LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token _operator) : _operator(_operator) {
+  first.swap(this->first);
+  second.swap(this->second);
+}
 
 bool is_not_null_expr(expr ex) { // that's a BAD way of saying something is null but, uh, here we are
   switch (ex.index()) {          // basicly if it's just 'Literal(literal_t(_NULL))' then true but very verbose because c++
@@ -61,21 +66,26 @@ literal_t LitOp::negative(literal_t lit) {
   return 0;
 }
 
-literal_t LitOp::if_true(literal_t lit) {
+bool LitOp::if_true(literal_t lit) {
   return std::visit([&](auto&& value){return if_true_over(value);}, lit);
 }
-literal_t LitOp::if_true_over(token_type lit) {
+bool LitOp::if_true_over(token_type lit) {
     switch (lit) {
-      case _NULL: return literal_t(FALSE);
-      case FALSE: return literal_t(FALSE);
+      case _NULL: return false;
+      case FALSE: return false;
       default:
       break;
     }
-  return literal_t(TRUE);
+  return true;
 }
-literal_t LitOp::if_true_over(int lit) {if (lit == 0) return literal_t(FALSE);return literal_t(TRUE);}
-literal_t LitOp::if_true_over(double lit) {if (lit == 0.0) return literal_t(FALSE);return literal_t(TRUE);}
-literal_t LitOp::if_true_over(std::string lit) {return literal_t(TRUE);}
+bool LitOp::if_true_over(int lit) {if (lit == 0) return false;return true;}
+bool LitOp::if_true_over(double lit) {if (lit == 0.0) return false;return true;}
+bool LitOp::if_true_over(std::string lit) {return true;}
+
+literal_t LitOp::cac_bool(bool b) {
+  if (b) return TRUE;
+  else return FALSE;
+}
 
 // oh my fucking god that's gonna be awful kill me
 // please if someone who knows how to programm this normally tell me because i'm about to go crazy

@@ -11,7 +11,7 @@ public:
   void define(Token name, literal_t initializer);
   literal_t get(Token name);
   void assign(Token name, literal_t value);
-private:
   std::shared_ptr<Environment> enclosing;
+private:
   std::unordered_map<std::string, literal_t> variables;
 };
