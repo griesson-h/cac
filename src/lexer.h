@@ -24,7 +24,8 @@ enum token_type {
   FOR, WHILE, IF, ELSE,
   VAR, FUNC, CLASS,
   TRUE, FALSE, THIS, _NULL,
-  RETURN, _EOF, PRINT,
+  RETURN, _EOF,
+  PRINT, SCAN,
   BREAK, CONTINUE
 };
 

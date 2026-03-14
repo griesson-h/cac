@@ -24,7 +24,8 @@ std::map<std::string, token_type> reserved_keywords = {
   {"return", RETURN},
   {"zaprintit", PRINT},
   {"break", BREAK},
-  {"continue", CONTINUE}
+  {"continue", CONTINUE},
+  {"zascanit", SCAN}
 };
 Token null_token = Token(_NULL, "", nullptr, 0);
 

@@ -11,8 +11,9 @@ struct Var;
 struct Block;
 struct IfStmt;
 struct While;
+struct ScanStmt;
 
-using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While>;
+using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt>;
 
 struct ExprStmt {
   ExprStmt(expr exp);
@@ -41,6 +42,10 @@ struct While {
   While(expr condition, std::shared_ptr<Stmt> body);
   expr condition;
   std::shared_ptr<Stmt> body;
+};
+struct ScanStmt {
+  ScanStmt(Token name);
+  Token name;
 };
 
 extern Stmt null_stmt;

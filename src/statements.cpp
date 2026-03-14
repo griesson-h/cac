@@ -1,4 +1,5 @@
 #include "statements.h"
+#include "lexer.h"
 
 PrintStmt::PrintStmt(expr exp) : exp(exp) {}
 ExprStmt::ExprStmt(expr exp) : exp(exp) {}
@@ -11,5 +12,6 @@ IfStmt::IfStmt(expr condition, std::shared_ptr<Stmt> then, std::shared_ptr<Stmt>
 While::While(expr condition, std::shared_ptr<Stmt> body) : condition(condition) {
   body.swap(this->body);
 }
+ScanStmt::ScanStmt(Token name) : name(name) {}
 
 Stmt null_stmt = ExprStmt(Literal(literal_t(_NULL)));

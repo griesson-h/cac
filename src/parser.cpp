@@ -70,6 +70,7 @@ Stmt Parser::statement() {
   if (match(IF)) {current++; return if_statement();}
   if (match(WHILE)) {current++; return while_statement();}
   if (match(FOR)) {current++; return for_statement();}
+  if (match(SCAN)) {current++; return scan_statement();}
 
   return expr_statement();
 }
@@ -78,6 +79,18 @@ Stmt Parser::print_statement() {
   expr arg = expression();
   Error::consume(SEMI, "Expected ';' after statement");
   return Stmt(PrintStmt(arg));
+}
+
+Stmt Parser::scan_statement() {
+  expr arg = primary();
+
+  Error::consume(SEMI, "Expected ';' after statement");
+
+  if (std::holds_alternative<Variable>(arg)) {
+    return ScanStmt(std::get<Variable>(arg).name);
+  }
+
+  return null_stmt;
 }
 
 Stmt Parser::expr_statement() {

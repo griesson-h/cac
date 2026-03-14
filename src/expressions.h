@@ -63,8 +63,6 @@ bool is_not_null_expr(expr ex);
   static bool if_true_over(int lit);
   static bool if_true_over(double lit);
   static bool if_true_over(std::string lit);
-
-  static literal_t cac_bool(bool b);
   
   static literal_t add(literal_t lit1, literal_t li2);
   static literal_t sub(literal_t lit1, literal_t li2);
@@ -79,7 +77,7 @@ bool is_not_null_expr(expr ex);
   static literal_t less_equal(literal_t first, literal_t second);
 
   template<typename T>
-  inline static bool contains(literal_t lit) { // sorry for a definition in a header linker is just dumb
+  inline static bool contains(literal_t lit) {
     return std::holds_alternative<T>(lit);
   }
 

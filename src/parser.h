@@ -19,6 +19,7 @@ private:
 
   static Stmt statement();
   static Stmt print_statement();
+  static Stmt scan_statement();
   static Stmt expr_statement();
   static std::vector<Stmt> block_statement();
   static Stmt if_statement();

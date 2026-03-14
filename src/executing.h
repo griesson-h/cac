@@ -28,6 +28,7 @@ private:
   static void execute(Stmt stmt);
   static void execute_over(std::monostate);
   static void execute_over(PrintStmt stmt);
+  static void execute_over(ScanStmt stmt);
   static void execute_over(ExprStmt stmt);
   static void execute_over(Var stmt);
   static void execute_over(Block stmt);

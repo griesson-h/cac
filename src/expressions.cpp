@@ -82,11 +82,6 @@ bool LitOp::if_true_over(int lit) {if (lit == 0) return false;return true;}
 bool LitOp::if_true_over(double lit) {if (lit == 0.0) return false;return true;}
 bool LitOp::if_true_over(std::string lit) {return true;}
 
-literal_t LitOp::cac_bool(bool b) {
-  if (b) return TRUE;
-  else return FALSE;
-}
-
 // oh my fucking god that's gonna be awful kill me
 // please if someone who knows how to programm this normally tell me because i'm about to go crazy
 //
@@ -186,6 +181,12 @@ literal_t LitOp::if_equal(literal_t lit1, literal_t lit2) {
   return literal_t(FALSE);
 }
 literal_t LitOp::greater(literal_t first, literal_t second) {
+  if (is_numbers(first, second) && std::holds_alternative<double>(second)) { // special case because for some odd reason int > double is always true for c++ with variants
+    switch (first.index()) {
+      case INT_T: return bool_make_lit(std::get<INT_T>(first) > std::get<DOUBLE>(second));
+      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) > std::get<DOUBLE>(second));
+    }
+  }
   if (is_numbers(first, second))
     return bool_make_lit(first > second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
@@ -193,6 +194,12 @@ literal_t LitOp::greater(literal_t first, literal_t second) {
   return literal_t(FALSE);
 }
 literal_t LitOp::greater_equal(literal_t first, literal_t second) {
+  if (is_numbers(first, second) && std::holds_alternative<double>(second)) {
+    switch (first.index()) {
+      case INT_T: return bool_make_lit(std::get<INT_T>(first) >= std::get<DOUBLE>(second));
+      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) >= std::get<DOUBLE>(second));
+    }
+  }
   if (is_numbers(first, second))
     return bool_make_lit(first >= second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
@@ -200,6 +207,12 @@ literal_t LitOp::greater_equal(literal_t first, literal_t second) {
   return literal_t(FALSE);
 }
 literal_t LitOp::less(literal_t first, literal_t second) {
+  if (is_numbers(first, second) && std::holds_alternative<double>(second)) {
+    switch (first.index()) {
+      case INT_T: return bool_make_lit(std::get<INT_T>(first) < std::get<DOUBLE>(second));
+      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) < std::get<DOUBLE>(second));
+    }
+  }
   if (is_numbers(first, second))
     return bool_make_lit(first < second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
@@ -207,6 +220,12 @@ literal_t LitOp::less(literal_t first, literal_t second) {
   return literal_t(FALSE);
 }
 literal_t LitOp::less_equal(literal_t first, literal_t second) {
+  if (is_numbers(first, second) && std::holds_alternative<double>(second)) { 
+    switch (first.index()) {
+      case INT_T: return bool_make_lit(std::get<INT_T>(first) <= std::get<DOUBLE>(second));
+      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) <= std::get<DOUBLE>(second));
+    }
+  }
   if (is_numbers(first, second))
     return bool_make_lit(first <= second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))

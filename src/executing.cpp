@@ -37,6 +37,16 @@ void Interpreter::execute_over(PrintStmt stmt) {
   std::cout << LitOp::literal_to_string(arg);
   /*TEMP*/ std::cout << std::endl;
 }
+void Interpreter::execute_over(ScanStmt stmt) {
+  std::string input;
+  std::cin >> input;
+  try {
+    double x = std::stod(input);
+    env->assign(stmt.name, x);
+  } catch(std::invalid_argument) {
+    env->assign(stmt.name, input);
+  }
+}
 void Interpreter::execute_over(ExprStmt stmt) {
   evaluate(stmt.exp);
 }
@@ -94,7 +104,7 @@ literal_t Interpreter::evaluate_over(Unary ex) {
       return LitOp::negative(right);
       break;
     case EXCL:
-      return LitOp::negative(LitOp::cac_bool(LitOp::if_true(right)));
+      return LitOp::negative(LitOp::bool_make_lit(LitOp::if_true(right)));
     default:
       break;
   }
@@ -140,6 +150,7 @@ literal_t Interpreter::evaluate_over(Binary ex) {
       if (LitOp::contains<token_type>(ret)) throw RuntimeError(ex._operator, "Division by zero is undefined");
       return ret;
     } // yes to initialize a variable in a switch statement i gotta use this weird braces on case statement idk why c++'s weird ig (also it's 1:15 pm i needa go to bed)
+      // it's needed to initialize scope you idiot
     case STAR:
       if (!(LitOp::is_numbers(first, second)))
         goto err_not_number;
