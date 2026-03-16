@@ -1,6 +1,7 @@
 #include "executing.h"
 #include "environment.h"
 #include "expressions.h"
+#include "function.h"
 #include "interpreter.h"
 #include "lexer.h"
 #include "statements.h"
@@ -9,20 +10,34 @@
 #include <memory>
 #include <variant>
 #include <vector>
+#include <string>
+#include <sstream>
 
 std::shared_ptr<Environment> Interpreter::env(new Environment);
 std::shared_ptr<Environment> Interpreter::backup_env(nullptr);
 
+bool Interpreter::in_loop = false;
+
 void Interpreter::interpret(std::vector<Stmt> statements) {
+  if (!backup_env)
+    backup_env = env;
+  init_foreigns();
   try {
     for (auto statement : statements) {
       execute(statement);
     }
   } catch(RuntimeError e) {
-    if (!backup_env) backup_env.swap(env);
+    if (!backup_env) env = backup_env;
     backup_env.reset();
     report_at_runtime(e.token, e.what());
   }
+}
+
+void Interpreter::init_foreigns() {
+  std::shared_ptr<func_t> time(new Foreigns::Time);
+  env->define(Token(IDENT, "time", nullptr, 0), time);
+  std::shared_ptr<func_t> to_string(new Foreigns::ToString);
+  env->define(Token(IDENT, "str", nullptr, 0), to_string);
 }
 
 void Interpreter::execute(Stmt stmt) {
@@ -35,7 +50,7 @@ void Interpreter::execute_over(std::monostate) {
 void Interpreter::execute_over(PrintStmt stmt) {
   literal_t arg = evaluate(stmt.exp);
   std::cout << LitOp::literal_to_string(arg);
-  /*TEMP*/ std::cout << std::endl;
+  ///*TEMP*/ std::cout << std::endl;
 }
 void Interpreter::execute_over(ScanStmt stmt) {
   std::string input;
@@ -59,14 +74,16 @@ void Interpreter::execute_over(Var stmt) {
   env->define(stmt.name, value);
 }
 void Interpreter::execute_over(Block stmt) {
-  Environment new_env(env);
-  if (!backup_env)
-    backup_env.swap(env);
+  execute_block(stmt.stmts, Environment(env));
+}
+
+void Interpreter::execute_block(std::vector<Stmt> stmts, Environment new_env) {
+  auto previous = env;
   env = std::make_shared<Environment>(new_env);
-  for (auto statement : stmt.stmts) {
+  for (auto statement : stmts) {
     execute(statement);
   }
-  if (env->enclosing) env->enclosing.swap(env);
+  env = previous;
 }
 
 void Interpreter::execute_over(IfStmt stmt) {
@@ -77,10 +94,36 @@ void Interpreter::execute_over(IfStmt stmt) {
   }
 }
 void Interpreter::execute_over(While stmt) {
+  in_loop = true;
   while (LitOp::if_true(evaluate(stmt.condition))) {
-    execute(*stmt.body);
+    try {
+      execute(*stmt.body);
+    } catch (Break) {
+      break;
+    }
   }
+  in_loop = false;
 }
+void Interpreter::execute_over(BreakStmt stmt) {
+  if (!in_loop)
+    throw RuntimeError(stmt.tok, "Attempted to break out of non-loop scope");
+  throw Break();
+}
+void Interpreter::execute_over(ContinueStmt stmt) {
+  if (!in_loop)
+    throw RuntimeError(stmt.tok, "'continue' must be called inside a loop");
+  throw RuntimeError(stmt.tok, "Continue statements are bad practice and\ntherefore are not supported (totally not because they break for loops)");
+  //throw Continue();
+}
+void Interpreter::execute_over(FunDecl stmt) {
+  std::shared_ptr<func_t> function(new Function(stmt, env));
+  env->define(stmt.name, function);
+}
+void Interpreter::execute_over(ReturnStmt stmt) {
+  literal_t return_value = evaluate(stmt.return_value);
+  throw Return(return_value);
+}
+Interpreter::Return::Return(literal_t value) : value(value) {}
 
 
 literal_t Interpreter::evaluate(expr ex) {
@@ -188,4 +231,25 @@ literal_t Interpreter::evaluate_over(LogicalBin ex) {
   }
 
   return evaluate(ex.second);
+}
+literal_t Interpreter::evaluate_over(Call ex) {
+  literal_t callee = evaluate(ex.callee);
+  
+  if (!std::holds_alternative<std::shared_ptr<func_t>>(callee)) {
+    throw RuntimeError(ex.tok, "Cannot call a non-callable expression");
+  }
+  auto fun = std::get<std::shared_ptr<func_t>>(callee);
+
+  std::vector<literal_t> args;
+  for (auto arg : ex.Args) {
+    args.push_back(evaluate(arg));
+  }
+
+  if (args.capacity() != fun->arity()) {
+    std::stringstream ss;
+    ss << "Expected " << fun->arity() << " arguments to be passed, but found " << args.capacity();
+    throw RuntimeError(ex.tok, ss.str());
+  }
+
+  return fun->call(args);
 }

@@ -12,8 +12,12 @@ struct Block;
 struct IfStmt;
 struct While;
 struct ScanStmt;
+struct FunDecl;
+struct ReturnStmt;
+struct BreakStmt;
+struct ContinueStmt;
 
-using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt>;
+using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt, FunDecl, ReturnStmt, BreakStmt, ContinueStmt>;
 
 struct ExprStmt {
   ExprStmt(expr exp);
@@ -46,6 +50,25 @@ struct While {
 struct ScanStmt {
   ScanStmt(Token name);
   Token name;
+};
+struct FunDecl {
+  FunDecl(Token name, std::vector<Token> param, std::vector<Stmt> body);
+  Token name;
+  std::vector<Token> param;
+  std::vector<Stmt> body;
+};
+struct ReturnStmt {
+  ReturnStmt(Token tok, expr return_value);
+  Token tok;
+  expr return_value;
+};
+struct BreakStmt {
+  BreakStmt(Token tok);
+  Token tok;
+};
+struct ContinueStmt {
+  ContinueStmt(Token tok);
+  Token tok;
 };
 
 extern Stmt null_stmt;

@@ -1,3 +1,4 @@
+#include "function.h"
 #include "expressions.h"
 #include "interpreter.h"
 #include "lexer.h"
@@ -20,6 +21,9 @@ Unary::Unary(Token _operator, std::shared_ptr<expr> postfix) : _operator(_operat
   postfix.swap(this->postfix);
 }
 Variable::Variable(Token name) : name(name) {}
+Call::Call(std::shared_ptr<expr> callee, Token tok, std::vector<expr> Args) : tok(tok), Args(Args) {
+  callee.swap(this->callee);
+}
 LogicalBin::LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token _operator) : _operator(_operator) {
   first.swap(this->first);
   second.swap(this->second);
@@ -42,6 +46,8 @@ std::string LitOp::literal_to_string(literal_t lit) {
     return std::to_string(*val);
   } else if (auto val = std::get_if<double>(&lit)) {
     return std::to_string(*val);
+  } else if (auto val = std::get_if<std::shared_ptr<func_t>>(&lit)) {
+    return (*val)->to_string();
   } else {
     switch (std::get<token_type>(lit)) {
       case TRUE: return "true"; break;
@@ -81,6 +87,7 @@ bool LitOp::if_true_over(token_type lit) {
 bool LitOp::if_true_over(int lit) {if (lit == 0) return false;return true;}
 bool LitOp::if_true_over(double lit) {if (lit == 0.0) return false;return true;}
 bool LitOp::if_true_over(std::string lit) {return true;}
+bool LitOp::if_true_over(std::shared_ptr<func_t> lit) {return true;}
 
 // oh my fucking god that's gonna be awful kill me
 // please if someone who knows how to programm this normally tell me because i'm about to go crazy

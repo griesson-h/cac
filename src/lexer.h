@@ -29,9 +29,11 @@ enum token_type {
   BREAK, CONTINUE
 };
 
-using literal_t = std::variant<token_type, int, double, std::string>;
+struct func_t;
+
+using literal_t = std::variant<token_type, int, double, std::string, std::shared_ptr<func_t>>;
 enum literal_type {
-  RESERV, INT_T, DOUBLE, STRING_T
+  RESERV, INT_T, DOUBLE, STRING_T, FUNC_T
 };
 
 struct Token {

@@ -13,5 +13,9 @@ While::While(expr condition, std::shared_ptr<Stmt> body) : condition(condition) 
   body.swap(this->body);
 }
 ScanStmt::ScanStmt(Token name) : name(name) {}
+FunDecl::FunDecl(Token name, std::vector<Token> param, std::vector<Stmt> body) : name(name), param(param), body(body) {}
+BreakStmt::BreakStmt(Token tok) : tok(tok) {}
+ContinueStmt::ContinueStmt(Token tok) : tok(tok) {}
+ReturnStmt::ReturnStmt(Token tok, expr return_value) : tok(tok), return_value(return_value) {}
 
 Stmt null_stmt = ExprStmt(Literal(literal_t(_NULL)));

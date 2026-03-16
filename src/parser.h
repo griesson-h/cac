@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+const int MAX_ARGS = 255;
+
 /*abstract*/ class Parser {
 public:
   static std::vector<Stmt> parse();
@@ -16,6 +18,7 @@ private:
 
   static Stmt declaration();
   static Stmt var_decl();
+  static Stmt func_decl();
 
   static Stmt statement();
   static Stmt print_statement();
@@ -25,6 +28,9 @@ private:
   static Stmt if_statement();
   static Stmt while_statement();
   static Stmt for_statement();
+  static Stmt return_statement();
+  static Stmt break_statement();
+  static Stmt continue_statement();
 
   static expr assignment();
   static expr expression();
@@ -35,9 +41,11 @@ private:
   static expr term();
   static expr factor();
   static expr unary();
+  static expr call();
   static expr primary();
 
   static bool match(token_type type);
+  static bool match_consume(token_type type);
   static bool __EOF();
   static expr peek();
 
@@ -65,5 +73,6 @@ private:
   static std::string print_over(Variable expr);
   static std::string print_over(Assign expr);
   static std::string print_over(LogicalBin expr);
+  static std::string print_over(Call expr);
   static std::string parenthesize(const char* name, std::vector<expr> Exprs);
 };

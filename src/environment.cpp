@@ -1,6 +1,8 @@
 #include "environment.h"
 #include "executing.h"
+#include "function.h"
 #include "lexer.h"
+#include <memory>
 #include <sstream>
 #include <unordered_map>
 #include <iostream>
@@ -10,9 +12,7 @@
 Environment::Environment() {
   enclosing = nullptr;
 }
-Environment::Environment(std::shared_ptr<Environment> enclosing) {
-  enclosing.swap(this->enclosing);
-}
+Environment::Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {}
 
 void Environment::define(Token name, literal_t initializer) {
   variables[name.lexeme] = initializer;

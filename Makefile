@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/griesson/Documents/elisey/programming_stuff/cacamber/cac-g
+CMAKE_SOURCE_DIR = /home/griesson/Documents/elisey/programming_stuff/cacamber/cac
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/griesson/Documents/elisey/programming_stuff/cacamber/cac-g
+CMAKE_BINARY_DIR = /home/griesson/Documents/elisey/programming_stuff/cacamber/cac
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/griesson/Documents/elisey/programming_stuff/cacamber/cac-g/CMakeFiles /home/griesson/Documents/elisey/programming_stuff/cacamber/cac-g//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/griesson/Documents/elisey/programming_stuff/cacamber/cac/CMakeFiles /home/griesson/Documents/elisey/programming_stuff/cacamber/cac//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/griesson/Documents/elisey/programming_stuff/cacamber/cac-g/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/griesson/Documents/elisey/programming_stuff/cacamber/cac/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -200,6 +200,30 @@ src/expressions.s: src/expressions.cpp.s
 src/expressions.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/expressions.cpp.s
 .PHONY : src/expressions.cpp.s
+
+src/function.o: src/function.cpp.o
+.PHONY : src/function.o
+
+# target to build an object file
+src/function.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/function.cpp.o
+.PHONY : src/function.cpp.o
+
+src/function.i: src/function.cpp.i
+.PHONY : src/function.i
+
+# target to preprocess a source file
+src/function.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/function.cpp.i
+.PHONY : src/function.cpp.i
+
+src/function.s: src/function.cpp.s
+.PHONY : src/function.s
+
+# target to generate assembly for a file
+src/function.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/function.cpp.s
+.PHONY : src/function.cpp.s
 
 src/interpreter.o: src/interpreter.cpp.o
 .PHONY : src/interpreter.o
@@ -315,6 +339,9 @@ help:
 	@echo "... src/expressions.o"
 	@echo "... src/expressions.i"
 	@echo "... src/expressions.s"
+	@echo "... src/function.o"
+	@echo "... src/function.i"
+	@echo "... src/function.s"
 	@echo "... src/interpreter.o"
 	@echo "... src/interpreter.i"
 	@echo "... src/interpreter.s"

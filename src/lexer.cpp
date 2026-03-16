@@ -72,17 +72,33 @@ std::vector<Token> lex_tokens(const std::string source) {
   };
   const auto lex_string = [&](){
     const auto report_line = current_line;
+    std::stringstream textstream;
+    
     while (peek_safely() != '"' && !__EOF()) {
-      if (peek_safely() == '\n') current_line++;
-      current++;
+      switch (peek_safely()) {
+        case '\n': current++; break;
+        case '\\':
+          current++;
+          switch (peek_safely()) {
+            case '\\': textstream << '\\'; current++; break;
+            case '\"': textstream << '\"'; current++; break;
+            case 'n': textstream << '\n'; current++; break;
+            case 't': textstream << '\t'; current++; break;
+            default: current++; break;
+          }
+          break;
+        default:
+          textstream << peek_safely();
+          current++;
+          break;
+      }
     }
 
     if (__EOF()) {
       report(report_line, "Unterminated string");
     }
 
-
-    const literal_t literal = source.substr(begining + 1, current - begining - 1);
+    const literal_t literal = textstream.str();
     current++;
     add_token(STRING, &literal);
   };

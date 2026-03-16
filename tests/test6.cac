@@ -1,0 +1,12 @@
+func zaprintitln(n) {
+    zaprintit n;
+    zaprintit "\n";
+}
+
+func foo(n) {
+    func ret() {
+        zaprintitln(n);
+    }
+    return ret;
+}
+foo(2)();

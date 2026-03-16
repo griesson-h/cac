@@ -19,4 +19,5 @@ add_executable(${PROJECT_NAME}
     src/executing.cpp
     src/statements.cpp
     src/environment.cpp
+    src/function.cpp
 )

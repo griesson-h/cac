@@ -12,6 +12,10 @@
 /*abstract*/ class Interpreter {
 public:
   static void interpret(std::vector<Stmt> ex);
+  static std::shared_ptr<Environment> env;
+  static std::shared_ptr<Environment> backup_env; // pointer to the global environment to recover it after block statement/s
+
+  static void execute_block(std::vector<Stmt> stmts, Environment new_env);
 
   class RuntimeError : public std::exception {
   private:
@@ -21,9 +25,14 @@ public:
     RuntimeError(Token token, std::string msg);
     const char* what() const noexcept;
   };
+  class Return : public std::exception {
+  public:
+    literal_t value;
+    Return(literal_t value);
+  };
 private:
-  static std::shared_ptr<Environment> env;
-  static std::shared_ptr<Environment> backup_env; // pointer to the global environment to recover it after block statement/s
+  static bool in_loop;
+  static void init_foreigns();
 
   static void execute(Stmt stmt);
   static void execute_over(std::monostate);
@@ -34,6 +43,10 @@ private:
   static void execute_over(Block stmt);
   static void execute_over(IfStmt stmt);
   static void execute_over(While stmt);
+  static void execute_over(FunDecl stmt);
+  static void execute_over(BreakStmt stmt);
+  static void execute_over(ContinueStmt stmt);
+  static void execute_over(ReturnStmt stmt);
 
   static literal_t evaluate(expr ex);
   static literal_t evaluate_over(Literal ex);
@@ -43,4 +56,8 @@ private:
   static literal_t evaluate_over(Variable ex);
   static literal_t evaluate_over(Assign ex);
   static literal_t evaluate_over(LogicalBin ex);
+  static literal_t evaluate_over(Call ex);
+
+  class Break : public std::exception {};
+  class Continue : public std::exception {};
 };

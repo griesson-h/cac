@@ -7,7 +7,6 @@
 #include <sstream>
 #include <variant>
 #include <vector>
-#include <iostream>
 
 int Parser::current = 0;
 
@@ -43,6 +42,7 @@ void Parser::synchronize() {
 
 Stmt Parser::declaration() {
   try {
+    if (match(FUNC)) {current++; return func_decl();}
     if (match(VAR)) {current++; return var_decl();}
     return statement();
   } catch (Error::ParseError err) {
@@ -50,6 +50,25 @@ Stmt Parser::declaration() {
     synchronize();
     return std::monostate();
   }
+}
+Stmt Parser::func_decl() {
+  Token ident = Error::consume(IDENT, "Expected identifier after 'func' token");
+
+  Error::consume(LEFT_PARENTH, "Expected '(' after function identifier");
+
+  std::vector<Token> param;
+  if (!match(RIGHT_PARENTH)) {
+    do {
+      if (param.capacity() >= MAX_ARGS)
+        Error::error(tokens[current], "Parameter overflow");
+      param.push_back(Error::consume(IDENT, "Expected identifier"));
+    } while (match_consume(COMMA));
+  }
+  Error::consume(RIGHT_PARENTH, "Unterminated parameter list");
+
+  Error::consume(LEFT_BRACE, "Expected '{' after function declaration");
+  std::vector<Stmt> body = block_statement();
+  return FunDecl(ident, param, body);
 }
 Stmt Parser::var_decl() {
   Token ident = Error::consume(IDENT, "Expected identifier after 'var' token");
@@ -71,6 +90,9 @@ Stmt Parser::statement() {
   if (match(WHILE)) {current++; return while_statement();}
   if (match(FOR)) {current++; return for_statement();}
   if (match(SCAN)) {current++; return scan_statement();}
+  if (match(BREAK)) {current++; return break_statement();}
+  if (match(CONTINUE)) {current++; return continue_statement();}
+  if (match(RETURN)) {current++; return return_statement();}
 
   return expr_statement();
 }
@@ -195,6 +217,27 @@ Stmt Parser::for_statement() {
 
   return body;
 }
+Stmt Parser::break_statement() {
+  Error::consume(SEMI, "Expected ';' after statement");
+
+  return BreakStmt(tokens[current - 1]);
+}
+
+Stmt Parser::continue_statement() {
+  Error::consume(SEMI, "Expected ';' after statement");
+
+  return ContinueStmt(tokens[current - 1]);
+}
+
+Stmt Parser::return_statement() {
+  Token tok = tokens[current - 1];
+  expr return_value = Literal(literal_t(_NULL));
+  if (!match(SEMI)) {
+    return_value = expression();
+  }
+  Error::consume(SEMI, "Expected ';' after statement");
+  return ReturnStmt(tok, return_value);
+}
 
 
 expr Parser::expression() {
@@ -308,7 +351,28 @@ expr Parser::unary() {
     expr postfix = unary();
     return Unary(_operator, std::make_shared<expr>(postfix));
   }
-  return primary();
+  return call();
+}
+
+expr Parser::call() {
+  expr ex = primary();
+  
+  while (match(LEFT_PARENTH)) {
+    current++;
+    std::vector<expr> args;
+    if (!match(RIGHT_PARENTH)) {
+      do {
+        if (args.capacity() >= MAX_ARGS) Error::error(tokens[current], "Argument overflow");
+        args.push_back(expression());
+      } while (match_consume(COMMA));
+    }
+    Token paren = Error::consume(RIGHT_PARENTH, "Unterminated function call");
+    expr exT = ex;
+    ex = Literal(literal_t(_NULL));
+    ex = Call(std::make_shared<expr>(exT), paren, args);
+  }
+
+  return ex;
 }
 
 expr Parser::primary() {
@@ -341,7 +405,15 @@ expr Parser::primary() {
 
 bool Parser::match(token_type type) {
   if (__EOF()) return false;
+  if (tokens[current].type == type)
+    return true;
+  return false;
+}
+
+bool Parser::match_consume(token_type type) {
+  if (__EOF()) return false;
   if (tokens[current].type == type) {
+    current++;
     return true;
   }
   return false;
@@ -395,10 +467,13 @@ std::string PreatyPrinter::print_over(Variable expr) {
   return expr.name.lexeme;
 }
 std::string PreatyPrinter::print_over(Assign expr) {
-  return "Sada";
+  return "nah";
 }
 std::string PreatyPrinter::print_over(LogicalBin expr) {
-  return "Sada";
+  return "nah";
+}
+std::string PreatyPrinter::print_over(Call expr) {
+  return "nah";
 }
 
 // there's probably more efficient way to do this but i'm just so tired of c++'s variadic functions

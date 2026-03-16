@@ -11,8 +11,9 @@ struct Binary;
 struct Unary;
 struct Variable;
 struct LogicalBin;
+struct Call;
 
-using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin>;
+using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call>;
 enum expr_type {
   LITERAL, GROUP, BIN, UNARY
 };
@@ -41,6 +42,12 @@ struct Unary {
   Token _operator;
   std::shared_ptr<expr> postfix;
 };
+struct Call {
+  Call(std::shared_ptr<expr> callee, Token tok, std::vector<expr> Args);
+  std::shared_ptr<expr> callee;
+  Token tok;
+  std::vector<expr> Args;
+};;
 struct Variable {
   Variable(Token name);
   Token name;
@@ -63,6 +70,7 @@ bool is_not_null_expr(expr ex);
   static bool if_true_over(int lit);
   static bool if_true_over(double lit);
   static bool if_true_over(std::string lit);
+  static bool if_true_over(std::shared_ptr<func_t> lit);
   
   static literal_t add(literal_t lit1, literal_t li2);
   static literal_t sub(literal_t lit1, literal_t li2);
