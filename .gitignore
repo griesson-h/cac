@@ -7,4 +7,5 @@ Makefile
 cac
 # core dumps
 dumb.*
+core.*
 
