@@ -1,0 +1,10 @@
+func fun(a, f) {
+    if f(a) return true;
+    return false;
+}
+
+var input;
+zascanit input;
+zaprintit str(fun(input, func (i) {
+    return i == 20;
+})) + "\n";

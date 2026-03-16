@@ -17,7 +17,9 @@ struct ReturnStmt;
 struct BreakStmt;
 struct ContinueStmt;
 
+
 using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt, FunDecl, ReturnStmt, BreakStmt, ContinueStmt>;
+
 
 struct ExprStmt {
   ExprStmt(expr exp);
@@ -70,5 +72,7 @@ struct ContinueStmt {
   ContinueStmt(Token tok);
   Token tok;
 };
+
+struct InnerExprStmt {Stmt stmt; InnerExprStmt(Stmt stmt); void operator=(Stmt stmt);};
 
 extern Stmt null_stmt;

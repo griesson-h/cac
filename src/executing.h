@@ -32,6 +32,7 @@ public:
   };
 private:
   static bool in_loop;
+  static bool passed_first_init;
   static void init_foreigns();
 
   static void execute(Stmt stmt);
@@ -57,6 +58,7 @@ private:
   static literal_t evaluate_over(Assign ex);
   static literal_t evaluate_over(LogicalBin ex);
   static literal_t evaluate_over(Call ex);
+  static literal_t evaluate_over(Lambda ex);
 
   class Break : public std::exception {};
   class Continue : public std::exception {};

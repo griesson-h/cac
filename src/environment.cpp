@@ -15,7 +15,14 @@ Environment::Environment() {
 Environment::Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {}
 
 void Environment::define(Token name, literal_t initializer) {
-  variables[name.lexeme] = initializer;
+  if (!variables.contains(name.lexeme)) {
+    variables[name.lexeme] = initializer;
+    return;
+  }
+
+  std::stringstream ss;
+  ss << "Redifinition of '" << name.lexeme << "', try assigning instead";
+  throw Interpreter::RuntimeError(name, ss.str());
 }
 void Environment::assign(Token name, literal_t value) {
   if (variables.contains(name.lexeme)) {

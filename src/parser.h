@@ -33,6 +33,7 @@ private:
   static Stmt continue_statement();
 
   static expr assignment();
+  static expr lambda();
   static expr expression();
   static expr or_expr();
   static expr and_expr();
@@ -74,5 +75,6 @@ private:
   static std::string print_over(Assign expr);
   static std::string print_over(LogicalBin expr);
   static std::string print_over(Call expr);
+  static std::string print_over(Lambda expr);
   static std::string parenthesize(const char* name, std::vector<expr> Exprs);
 };

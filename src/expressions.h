@@ -3,6 +3,7 @@
 #include <memory>
 #include <variant>
 #include <string>
+#include <vector>
 
 struct Assign;
 struct Literal;
@@ -12,8 +13,9 @@ struct Unary;
 struct Variable;
 struct LogicalBin;
 struct Call;
+struct Lambda;
 
-using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call>;
+using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call, Lambda>;
 enum expr_type {
   LITERAL, GROUP, BIN, UNARY
 };
@@ -57,6 +59,16 @@ struct LogicalBin {
   std::shared_ptr<expr> first;
   Token _operator;
   std::shared_ptr<expr> second;
+};
+
+//struct InnerExprStmt; // it's actually just Stmt but struct so i can define it this way, c++ is and always gonna be weird
+struct Block;
+
+struct Lambda {
+  Lambda(Token tok, std::vector<Token> param, std::shared_ptr<Block> body);
+  Token tok;
+  std::vector<Token> param;
+  std::shared_ptr<Block> body;
 };
 
 bool is_not_null_expr(expr ex);

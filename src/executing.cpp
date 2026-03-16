@@ -15,20 +15,22 @@
 
 std::shared_ptr<Environment> Interpreter::env(new Environment);
 std::shared_ptr<Environment> Interpreter::backup_env(nullptr);
+bool Interpreter::passed_first_init = false;
 
 bool Interpreter::in_loop = false;
 
 void Interpreter::interpret(std::vector<Stmt> statements) {
-  if (!backup_env)
+  if (!passed_first_init) {
     backup_env = env;
-  init_foreigns();
+    init_foreigns();
+  }
+  passed_first_init = true;
   try {
     for (auto statement : statements) {
       execute(statement);
     }
   } catch(RuntimeError e) {
     if (!backup_env) env = backup_env;
-    backup_env.reset();
     report_at_runtime(e.token, e.what());
   }
 }
@@ -252,4 +254,11 @@ literal_t Interpreter::evaluate_over(Call ex) {
   }
 
   return fun->call(args);
+}
+literal_t Interpreter::evaluate_over(Lambda ex) {
+  std::stringstream ss;
+  ss << "lambda." << ex.tok.line << "." << ex.param.capacity();
+  Token name = Token(IDENT, ss.str().c_str(), nullptr, ex.tok.line);
+  std::shared_ptr<func_t> lambda(new Function(FunDecl(name, ex.param, ex.body->stmts), env));
+  return lambda;
 }

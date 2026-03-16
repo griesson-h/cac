@@ -1,10 +1,12 @@
 #include "function.h"
 #include "expressions.h"
 #include "interpreter.h"
+#include "statements.h"
 #include "lexer.h"
 #include <memory>
 #include <variant>
 #include <iostream>
+#include <vector>
 
 Assign::Assign(Token identifier, std::shared_ptr<expr> value) : identifier(identifier) {
   value.swap(this->value);
@@ -28,6 +30,7 @@ LogicalBin::LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second
   first.swap(this->first);
   second.swap(this->second);
 }
+Lambda::Lambda(Token tok, std::vector<Token> param, std::shared_ptr<Block> body) : tok(tok), param(param), body(body) {}
 
 bool is_not_null_expr(expr ex) { // that's a BAD way of saying something is null but, uh, here we are
   switch (ex.index()) {          // basicly if it's just 'Literal(literal_t(_NULL))' then true but very verbose because c++
@@ -155,14 +158,13 @@ literal_t LitOp::mul(literal_t lit1, literal_t lit2) {
   return 0;
 }
 literal_t LitOp::div(literal_t lit1, literal_t lit2) {
+  if (lit2 == literal_t(0) || lit2 == literal_t(0.0)) goto err_div_zero;
   switch (lit1.index()) {
     case INT_T:
       switch (lit2.index()) {
         case INT_T:
-          if (std::get<int>(lit2) == 0) goto err_div_zero;
           return std::get<int>(lit1) / std::get<int>(lit2);
         case DOUBLE: 
-          if (std::get<double>(lit2) == 0) goto err_div_zero;
           return std::get<int>(lit1) / std::get<double>(lit2);
         case STRING_T: break;
       }
@@ -170,10 +172,8 @@ literal_t LitOp::div(literal_t lit1, literal_t lit2) {
     case DOUBLE:
       switch (lit2.index()) {
         case INT_T:
-          if (std::get<int>(lit2) == 0) goto err_div_zero;
           return std::get<double>(lit1) / std::get<int>(lit2);
         case DOUBLE: 
-          if (std::get<double>(lit2) == 0) goto err_div_zero;
           return std::get<double>(lit1) / std::get<double>(lit2);
         case STRING_T: break;
       }
@@ -188,57 +188,88 @@ literal_t LitOp::if_equal(literal_t lit1, literal_t lit2) {
   return literal_t(FALSE);
 }
 literal_t LitOp::greater(literal_t first, literal_t second) {
-  if (is_numbers(first, second) && std::holds_alternative<double>(second)) { // special case because for some odd reason int > double is always true for c++ with variants
-    switch (first.index()) {
-      case INT_T: return bool_make_lit(std::get<INT_T>(first) > std::get<DOUBLE>(second));
-      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) > std::get<DOUBLE>(second));
-    }
+  switch (first.index()) {
+    case INT_T:
+      switch (second.index()) {
+        case INT_T: return bool_make_lit(std::get<int>(first) > std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<int>(first) > std::get<double>(second));
+        case STRING_T: break;
+      }
+      break;
+    case DOUBLE:
+      switch (second.index()) {
+        case INT_T:return bool_make_lit(std::get<double>(first) > std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<double>(first) > std::get<double>(second));
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
-  if (is_numbers(first, second))
-    return bool_make_lit(first > second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() > std::get<std::string>(second).length()) return literal_t(TRUE);
   return literal_t(FALSE);
 }
 literal_t LitOp::greater_equal(literal_t first, literal_t second) {
-  if (is_numbers(first, second) && std::holds_alternative<double>(second)) {
-    switch (first.index()) {
-      case INT_T: return bool_make_lit(std::get<INT_T>(first) >= std::get<DOUBLE>(second));
-      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) >= std::get<DOUBLE>(second));
-    }
+  switch (first.index()) {
+    case INT_T:
+      switch (second.index()) {
+        case INT_T: return bool_make_lit(std::get<int>(first) >= std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<int>(first) >= std::get<double>(second));
+        case STRING_T: break;
+      }
+      break;
+    case DOUBLE:
+      switch (second.index()) {
+        case INT_T:return bool_make_lit(std::get<double>(first) >= std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<double>(first) >= std::get<double>(second));
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
-  if (is_numbers(first, second))
-    return bool_make_lit(first >= second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() >= std::get<std::string>(second).length()) return literal_t(TRUE);
   return literal_t(FALSE);
 }
 literal_t LitOp::less(literal_t first, literal_t second) {
-  if (is_numbers(first, second) && std::holds_alternative<double>(second)) {
-    switch (first.index()) {
-      case INT_T: return bool_make_lit(std::get<INT_T>(first) < std::get<DOUBLE>(second));
-      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) < std::get<DOUBLE>(second));
-    }
+  switch (first.index()) {
+    case INT_T:
+      switch (second.index()) {
+        case INT_T: return bool_make_lit(std::get<int>(first) < std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<int>(first) < std::get<double>(second));
+        case STRING_T: break;
+      }
+      break;
+    case DOUBLE:
+      switch (second.index()) {
+        case INT_T:return bool_make_lit(std::get<double>(first) < std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<double>(first) < std::get<double>(second));
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
-  if (is_numbers(first, second))
-    return bool_make_lit(first < second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() < std::get<std::string>(second).length()) return literal_t(TRUE);
   return literal_t(FALSE);
 }
 literal_t LitOp::less_equal(literal_t first, literal_t second) {
-  if (is_numbers(first, second) && std::holds_alternative<double>(second)) { 
-    switch (first.index()) {
-      case INT_T: return bool_make_lit(std::get<INT_T>(first) <= std::get<DOUBLE>(second));
-      case DOUBLE: return bool_make_lit(std::get<DOUBLE>(first) <= std::get<DOUBLE>(second));
-    }
+  switch (first.index()) {
+    case INT_T:
+      switch (second.index()) {
+        case INT_T: return bool_make_lit(std::get<int>(first) <= std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<int>(first) <= std::get<double>(second));
+        case STRING_T: break;
+      }
+      break;
+    case DOUBLE:
+      switch (second.index()) {
+        case INT_T:return bool_make_lit(std::get<double>(first) <= std::get<int>(second));
+        case DOUBLE:return bool_make_lit(std::get<double>(first) <= std::get<double>(second));
+        case STRING_T: break;
+      }
+    case STRING_T: break;
   }
-  if (is_numbers(first, second))
-    return bool_make_lit(first <= second);
   if (std::holds_alternative<std::string>(first) && std::holds_alternative<std::string>(second))
     if (std::get<std::string>(first).length() <= std::get<std::string>(second).length()) return literal_t(TRUE);
 
-  if (first <= second) return FALSE;
   return literal_t(FALSE);
 }
 

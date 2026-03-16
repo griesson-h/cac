@@ -1,0 +1,2 @@
+var copy = func (a, b, c, d) {return 0;};
+zaprintit str(copy) + "\n";

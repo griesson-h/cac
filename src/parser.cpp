@@ -7,6 +7,7 @@
 #include <sstream>
 #include <variant>
 #include <vector>
+#include <iostream>
 
 int Parser::current = 0;
 
@@ -245,7 +246,7 @@ expr Parser::expression() {
 }
 
 expr Parser::assignment() {
-  expr ex = or_expr();
+  expr ex = lambda();
 
   if (match(EQUAL)) {
     Token token_to_report = tokens[current];
@@ -259,6 +260,29 @@ expr Parser::assignment() {
 
     Error::error(token_to_report, "holy fucking shit i wanna sleep");
   }
+  return ex;
+}
+
+expr Parser::lambda() {
+  if (match(FUNC)) {
+    Token tok = tokens[current];
+    current++;
+    Error::consume(LEFT_PARENTH, "Expected parameter list after lambda declaration");
+
+    std::vector<Token> param;
+    do {
+      if (param.capacity() >= MAX_ARGS)
+        Error::error(tokens[current], "Parameter overflow");
+      param.push_back(Error::consume(IDENT, "Expected identifier"));
+    } while(match_consume(COMMA));
+    Error::consume(RIGHT_PARENTH, "Unterminated parameter list");
+
+    Error::consume(LEFT_BRACE, "Expected '{' after lambda paramater list");
+    Block block = Block(block_statement());
+    auto body = std::make_shared<Block>(block);
+    return Lambda(tok, param, body);
+  }
+  expr ex = or_expr();
   return ex;
 }
 
@@ -473,6 +497,9 @@ std::string PreatyPrinter::print_over(LogicalBin expr) {
   return "nah";
 }
 std::string PreatyPrinter::print_over(Call expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(Lambda expr) {
   return "nah";
 }
 
