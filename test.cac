@@ -1,11 +1,5 @@
-var iter;
-zascanit iter;
-
-var sign = 1;
-var pi = 0.0;
-for var n = 0; n < iter; n = n+1 {
-    zaprintit n;
-    pi = pi + sign / (2*n + 1.0);
-    sign = sign * -1;
+func a(b) {
+    zaprintit str(b) + "\n";
 }
-zaprintit pi*4;
+a(2);
+zaprintit str(time()) + "\n";

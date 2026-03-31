@@ -20,10 +20,10 @@ struct func_t {
 };
 class Function : public func_t {
 private:
-  FunDecl declaration;
+  FunDecl& declaration;
   std::shared_ptr<Environment> closure;
 public:
-  Function(FunDecl declaration, std::shared_ptr<Environment> closure);
+  Function(FunDecl& declaration, std::shared_ptr<Environment> closure);
   int arity() override;
   literal_t call(std::vector<literal_t> args) override;
   std::string to_string() override;

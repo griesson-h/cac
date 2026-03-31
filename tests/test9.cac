@@ -1,0 +1,10 @@
+var a = "global";
+{
+  func showA() {
+    zaprintit str(a) + "\n";
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}

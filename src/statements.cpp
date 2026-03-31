@@ -1,4 +1,5 @@
 #include "statements.h"
+#include "expressions.h"
 #include "lexer.h"
 
 PrintStmt::PrintStmt(expr exp) : exp(exp) {}
@@ -12,7 +13,7 @@ IfStmt::IfStmt(expr condition, std::shared_ptr<Stmt> then, std::shared_ptr<Stmt>
 While::While(expr condition, std::shared_ptr<Stmt> body) : condition(condition) {
   body.swap(this->body);
 }
-ScanStmt::ScanStmt(Token name) : name(name) {}
+ScanStmt::ScanStmt(Variable name) : name(name) {}
 FunDecl::FunDecl(Token name, std::vector<Token> param, std::vector<Stmt> body) : name(name), param(param), body(body) {}
 BreakStmt::BreakStmt(Token tok) : tok(tok) {}
 ContinueStmt::ContinueStmt(Token tok) : tok(tok) {}

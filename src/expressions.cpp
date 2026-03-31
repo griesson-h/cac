@@ -30,7 +30,7 @@ LogicalBin::LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second
   first.swap(this->first);
   second.swap(this->second);
 }
-Lambda::Lambda(Token tok, std::vector<Token> param, std::shared_ptr<Block> body) : tok(tok), param(param), body(body) {}
+Lambda::Lambda(std::shared_ptr<FunDecl> decl) : decl(decl) {}
 
 bool is_not_null_expr(expr ex) { // that's a BAD way of saying something is null but, uh, here we are
   switch (ex.index()) {          // basicly if it's just 'Literal(literal_t(_NULL))' then true but very verbose because c++
@@ -184,6 +184,17 @@ err_div_zero:
   return _NULL; // then we'll just check for this value and depending on this throw a runtime error
 }
 literal_t LitOp::if_equal(literal_t lit1, literal_t lit2) {
+  switch (lit1.index()) {
+    case DOUBLE:
+      switch (lit2.index()) {
+        case DOUBLE:
+          return bool_make_lit(std::get<DOUBLE>(lit1) == std::get<DOUBLE>(lit2));
+        case INT_T:
+          return bool_make_lit(std::get<DOUBLE>(lit1) == std::get<INT_T>(lit2));
+      }
+    default:
+      if (lit2.index() == DOUBLE) return std::get<INT_T>(lit1) == std::get<DOUBLE>(lit2);
+  }
   if (lit1 == lit2) return literal_t(TRUE);
   return literal_t(FALSE);
 }

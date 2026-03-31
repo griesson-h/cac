@@ -8,13 +8,17 @@
 #include <string>
 #include <stdexcept>
 #include <csignal>
+#include <unordered_map>
 #include "executing.h"
 #include "parser.h"
 #include "interpreter.h"
 #include "lexer.h"
+#include "resolver.h"
 
 bool failed = false;
 bool failed_at_runtime = false;
+
+std::unordered_map<std::string, std::vector<Stmt>> ASTs;
 
 void SIGINT_handler(int s) {
   std::cout << '\n';
@@ -40,18 +44,7 @@ void report_at_runtime(Token token, std::string msg, const char* file) {
   failed_at_runtime = true;
 }
 
-void run(std::string bytes) {
-  //const char* errorm = "ur too stoopid lmao lol\n";
-  //report(69, errorm);
-//  if (failed) exit(10);
-//  std::stringstream stream(bytes);
-//  std::vector<std::string> tokens;
-//  std::string token;
-//  while (getline(stream, token, ' ')) {
-//    if (token.empty()) continue;
-//    tokens.push_back(token);
-//  }
-//  for (int i = 0; i < tokens.size(); ++i) std::cout << tokens[i] << std::endl;
+void run(std::string bytes, std::string file) {
   if (failed) return;
 
   std::cout << "------------debug------------" << std::endl;
@@ -62,19 +55,28 @@ void run(std::string bytes) {
     std::cout << std::endl << token.to_string() << '\t' << "id: " << i << std::endl;
     i++;
   }
-  if (failed) {
+  if (failed) { // later i'm gonna make a bit more convienient error handling rather than doing a bunch of if statments (hopefully)
     std::cout << "Lexer failed, aborting\n";
     return;
   }
-  std::vector<Stmt> programm = Parser::parse();
+
+  // TODO: make it work for multipule files
+  std::vector<Stmt> program = Parser::parse();
+  /*TEMP*/ASTs[file] = program;
+
   if (failed) {
     std::cout << "Parser failed, aborting\n";
+    return;
+  }
+  Resolver::resolve(ASTs[file]);
+  if (failed) {
+    std::cout << "Resolver failed, aborting\n";
     return;
   }
 
   std::cout << "------------output------------" << std::endl;
 
-  Interpreter::interpret(programm);
+  Interpreter::interpret(ASTs[file]);
   if (failed_at_runtime) return;
 
   //std::cout << std::get<Binary>(ex).first->index() << std::endl;
@@ -107,21 +109,23 @@ void run_script(char* source) {
     bytes << temp << '\n';
   }
   bytestream.close();
-  run(bytes.str());
+  run(bytes.str(), "IDK");
 }
 
 void run_cmd() {
   bool cmd_should_close = false;
+  int cmd_id = 0;
   while (!cmd_should_close) {
     std::cout << "cac-cmd > ";
     std::string line;
     std::getline(std::cin, line);
     if (line == "clear") {std::cout << "\033[2J\033[1;1H"; continue;} // clear and move the cursor to the top left
     if (line == "exit") break;
-    run(line);
+    run(line, std::string("CMD_PROMT").append(std::to_string(cmd_id)));
     /*(maybe)TEMP*/tokens.clear();
     failed = false;
     failed_at_runtime = false;
+    cmd_id++;
   }
 }
 

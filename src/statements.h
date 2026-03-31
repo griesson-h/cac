@@ -50,8 +50,8 @@ struct While {
   std::shared_ptr<Stmt> body;
 };
 struct ScanStmt {
-  ScanStmt(Token name);
-  Token name;
+  ScanStmt(Variable name);
+  Variable name;
 };
 struct FunDecl {
   FunDecl(Token name, std::vector<Token> param, std::vector<Stmt> body);
@@ -73,6 +73,6 @@ struct ContinueStmt {
   Token tok;
 };
 
-struct InnerExprStmt {Stmt stmt; InnerExprStmt(Stmt stmt); void operator=(Stmt stmt);};
+//struct InnerExprStmt {Stmt stmt; InnerExprStmt(Stmt stmt); void operator=(Stmt stmt);};
 
 extern Stmt null_stmt;

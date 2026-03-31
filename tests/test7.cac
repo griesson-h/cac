@@ -6,5 +6,5 @@ func fun(a, f) {
 var input;
 zascanit input;
 zaprintit str(fun(input, func (i) {
-    return i == 20;
+    return i <= 20;
 })) + "\n";

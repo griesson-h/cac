@@ -61,14 +61,11 @@ struct LogicalBin {
   std::shared_ptr<expr> second;
 };
 
-//struct InnerExprStmt; // it's actually just Stmt but struct so i can define it this way, c++ is and always gonna be weird
-struct Block;
+struct FunDecl;
 
 struct Lambda {
-  Lambda(Token tok, std::vector<Token> param, std::shared_ptr<Block> body);
-  Token tok;
-  std::vector<Token> param;
-  std::shared_ptr<Block> body;
+  Lambda(std::shared_ptr<FunDecl> decl); 
+  std::shared_ptr<FunDecl> decl;
 };
 
 bool is_not_null_expr(expr ex);

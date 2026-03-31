@@ -8,13 +8,16 @@
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 literal_t func_t::call(std::vector<literal_t>) {return _NULL;}
 int func_t::arity() {return 0;}
 std::string func_t::to_string() {return "";}
 
-Function::Function(FunDecl declaration, std::shared_ptr<Environment> closure) : declaration(declaration), closure(closure) {}
+Function::Function(FunDecl& declaration, std::shared_ptr<Environment> closure) : declaration(declaration), closure(closure) {}
+
 int Function::arity() {return declaration.param.capacity();}
+
 literal_t Function::call(std::vector<literal_t> args) {
   auto backup = Interpreter::env;
   Environment new_env = Environment(closure);

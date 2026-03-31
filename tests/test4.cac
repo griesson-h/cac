@@ -4,4 +4,9 @@ func hello(n) {
     hello(n);
 }
 
+{
+    var a = 2;
+    zaprintit a;
+}
+
 hello(-12321);

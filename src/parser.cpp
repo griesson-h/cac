@@ -270,17 +270,23 @@ expr Parser::lambda() {
     Error::consume(LEFT_PARENTH, "Expected parameter list after lambda declaration");
 
     std::vector<Token> param;
-    do {
-      if (param.capacity() >= MAX_ARGS)
-        Error::error(tokens[current], "Parameter overflow");
-      param.push_back(Error::consume(IDENT, "Expected identifier"));
-    } while(match_consume(COMMA));
+    if (!match(RIGHT_PARENTH)) {
+      do {
+        if (param.capacity() >= MAX_ARGS)
+          Error::error(tokens[current], "Parameter overflow");
+        param.push_back(Error::consume(IDENT, "Expected identifier"));
+      } while(match_consume(COMMA));
+    }
     Error::consume(RIGHT_PARENTH, "Unterminated parameter list");
 
     Error::consume(LEFT_BRACE, "Expected '{' after lambda paramater list");
     Block block = Block(block_statement());
-    auto body = std::make_shared<Block>(block);
-    return Lambda(tok, param, body);
+    
+    std::stringstream ss;
+    ss << "lambda." << tok.line << "." << param.capacity();
+    Token name = Token(IDENT, ss.str().c_str(), nullptr, tok.line);
+    std::shared_ptr<FunDecl> decl(new FunDecl(name, param, block.stmts));
+    return Lambda(decl);
   }
   expr ex = or_expr();
   return ex;
