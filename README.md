@@ -12,7 +12,8 @@ Interpreter for my new pseudo-language cac (/ˈkeɪk/)
 - [x] lambdas
 - [x] resolver
 - [x] classes
-- [ ] inheritence
+- [x] inheritence
+- [x] finish the book (that is the second charapter)
 - [ ] usage of multiple files
 - [ ] at least some optimazations (dont even wait lol)
 
