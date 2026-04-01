@@ -14,8 +14,11 @@ struct Variable;
 struct LogicalBin;
 struct Call;
 struct Lambda;
+struct Get;
+struct Set;
+struct This;
 
-using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call, Lambda>;
+using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call, Lambda, Get, Set, This>;
 enum expr_type {
   LITERAL, GROUP, BIN, UNARY
 };
@@ -39,6 +42,16 @@ struct Binary {
   Token _operator;
   std::shared_ptr<expr> second;
 };
+struct Set {
+  Set(std::shared_ptr<expr> object, Token name, std::shared_ptr<expr> value);
+  std::shared_ptr<expr> object;
+  Token name;
+  std::shared_ptr<expr> value;
+};
+struct This {
+  This(Token tok);
+  Token tok;
+};
 struct Unary {
   Unary(Token _operator, std::shared_ptr<expr> postfix);
   Token _operator;
@@ -49,7 +62,12 @@ struct Call {
   std::shared_ptr<expr> callee;
   Token tok;
   std::vector<expr> Args;
-};;
+};
+struct Get {
+  Get(std::shared_ptr<expr> object, Token name);
+  std::shared_ptr<expr> object;
+  Token name;
+};
 struct Variable {
   Variable(Token name);
   Token name;
@@ -80,6 +98,7 @@ bool is_not_null_expr(expr ex);
   static bool if_true_over(double lit);
   static bool if_true_over(std::string lit);
   static bool if_true_over(std::shared_ptr<func_t> lit);
+  static bool if_true_over(std::shared_ptr<Instance> lit);
   
   static literal_t add(literal_t lit1, literal_t li2);
   static literal_t sub(literal_t lit1, literal_t li2);

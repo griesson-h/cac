@@ -48,7 +48,9 @@ std::map<std::string, token_type> reserved_keywords = {
   {"zaprintit", PRINT},
   {"break", BREAK},
   {"continue", CONTINUE},
-  {"zascanit", SCAN}
+  {"zascanit", SCAN},
+  {"label", LABEL},
+  {"goto", GOTO}
 };
 Token null_token = Token(_NULL, "", nullptr, 0);
 
@@ -68,7 +70,8 @@ std::string Token::to_string() {
 }
 
 std::vector<Token> lex_tokens(const std::string source) {
-  std::cout << "source length: " << source.length() << " " << std::endl;
+  if (debuginfo)
+    std::cout << "source length: " << source.length() << " " << std::endl;
   int begining = 0;
   int current = 0;
   int current_line = 1;
@@ -137,14 +140,12 @@ std::vector<Token> lex_tokens(const std::string source) {
     while (is_digit(peek_safely())) current++;
 
     if (peek_safely() == '.' && is_digit(peek_safely(1))) {
-      std::cout << "FLOAT" << std::endl;
       current++;
       while (is_digit(peek_safely())) current++;
       const auto num_string = source.substr(begining, current - begining);
       const literal_t num = std::stod(num_string);
       add_token(FLOAT, &num);
     } else {
-      std::cout << "INT" << std::endl;
       const auto num_string = source.substr(begining, current - begining);
       literal_t num;
       try {
@@ -158,7 +159,6 @@ std::vector<Token> lex_tokens(const std::string source) {
 
     const auto ident_string = source.substr(begining, current - begining);
     if (reserved_keywords.contains(ident_string)) {
-      std::cout << "RESERVED" << std::endl;
       add_token(reserved_keywords.at(ident_string), nullptr); 
     }
     else
@@ -169,7 +169,7 @@ std::vector<Token> lex_tokens(const std::string source) {
     begining = current;
 
     const char ch = source.at(current++);
-    if (ch != ' ' && ch != '\n') {
+    if (debuginfo && ch != ' ' && ch != '\n') {
       std::cout << ch << std::endl;
     }
     switch(ch) {
@@ -185,6 +185,7 @@ std::vector<Token> lex_tokens(const std::string source) {
       case '+': add_token(PLUS, nullptr); break;
       case '*': add_token(STAR, nullptr); break;
       case ';': add_token(SEMI, nullptr); break;
+      case ':': add_token(COLON, nullptr); break;
 
       case '!':
         add_token(check('=') ? EXCL_EQUAL : EXCL, nullptr);
@@ -206,7 +207,6 @@ std::vector<Token> lex_tokens(const std::string source) {
         }
         break;
       case '"':
-        std::cout << "STRING" << std::endl;
         lex_string();
         break;
       case ' ':
@@ -214,16 +214,12 @@ std::vector<Token> lex_tokens(const std::string source) {
       case '\t':
         break;
       case '\n':
-        std::cout << "NEWLINE" << std::endl;
         current_line++;
         break;
       default:
-        std::cout << "default" << std::endl;
         if (ch >= '0' && ch <= '9') {
-          std::cout << "NUM" << std::endl;
           lex_numtype();
         } else if (is_alphabetic(ch)) {
-          std::cout << "IDENT" << std::endl;
           lex_identifier();
         } else {
           report(current_line, "Unexpected character");

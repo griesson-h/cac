@@ -1,0 +1,49 @@
+class Account {
+    func Account(id, username, name, password) {
+        this.id = id;
+        this.username = username;
+        this.name = str(name);
+        this.password = str(password);
+        this.hasLoggedIn = false;
+    }
+    func login() {
+        var inputUser;
+        var inputPass;
+        zaprintit "Type in username: ";
+        zascanit inputUser;
+        zaprintit "Type in password: ";
+        zascanit inputPass;
+        if str(inputUser) == this.username and str(password) == this.password {
+            zaprintit "Successfully logged in as " + this.username + " (id: " + str(this.id) + ")\n";
+            this.hasLoggedIn = true;
+        } else {
+            zaprintit "Login failed: Invalid password or username\n";
+        }
+    }
+    func greet() {
+        if !this.hasLoggedIn
+            {zaprintit "You have to log in first\n"; return;}
+        zaprintit "Good Morning, " + this.name + "\n";
+    }
+};
+var user;
+var name;
+var password;
+zaprintit "Username: ";
+zascanit user;
+zaprintit "Name: ";
+zascanit name;
+zaprintit "Password: ";
+zascanit password;
+var useraccout = Account(123, user, name, password);
+while true {
+    var input;
+    zaprintit "(0: log in, 1: greet): ";
+    zascanit input;
+    if input == 0
+        useraccout.login();
+    else if input == 1
+        useraccout.greet();
+    else
+        zaprintit "invalid action id\n";
+}

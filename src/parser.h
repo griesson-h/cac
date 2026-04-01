@@ -19,6 +19,7 @@ private:
   static Stmt declaration();
   static Stmt var_decl();
   static Stmt func_decl();
+  static Stmt class_decl();
 
   static Stmt statement();
   static Stmt print_statement();
@@ -31,6 +32,8 @@ private:
   static Stmt return_statement();
   static Stmt break_statement();
   static Stmt continue_statement();
+  static Stmt label_statement();
+  static Stmt goto_statement();
 
   static expr assignment();
   static expr lambda();
@@ -76,5 +79,8 @@ private:
   static std::string print_over(LogicalBin expr);
   static std::string print_over(Call expr);
   static std::string print_over(Lambda expr);
+  static std::string print_over(Get expr);
+  static std::string print_over(Set expr);
+  static std::string print_over(This expr);
   static std::string parenthesize(const char* name, std::vector<expr> Exprs);
 };

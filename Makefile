@@ -129,6 +129,30 @@ cac/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/build
 .PHONY : cac/fast
 
+src/classes.o: src/classes.cpp.o
+.PHONY : src/classes.o
+
+# target to build an object file
+src/classes.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/classes.cpp.o
+.PHONY : src/classes.cpp.o
+
+src/classes.i: src/classes.cpp.i
+.PHONY : src/classes.i
+
+# target to preprocess a source file
+src/classes.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/classes.cpp.i
+.PHONY : src/classes.cpp.i
+
+src/classes.s: src/classes.cpp.s
+.PHONY : src/classes.s
+
+# target to generate assembly for a file
+src/classes.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cac.dir/build.make CMakeFiles/cac.dir/src/classes.cpp.s
+.PHONY : src/classes.cpp.s
+
 src/environment.o: src/environment.cpp.o
 .PHONY : src/environment.o
 
@@ -354,6 +378,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... cac"
+	@echo "... src/classes.o"
+	@echo "... src/classes.i"
+	@echo "... src/classes.s"
 	@echo "... src/environment.o"
 	@echo "... src/environment.i"
 	@echo "... src/environment.s"

@@ -11,7 +11,7 @@ enum token_type {
   LEFT_BRACE, RIGHT_BRACE,
   LEFT_SQR_BR, RIGHT_SQR_BR,
 
-  COMMA, DOT, MINUS, PLUS, SLASH, STAR, SEMI,
+  COMMA, DOT, MINUS, PLUS, SLASH, STAR, SEMI, COLON,
 
   EXCL, EXCL_EQUAL,
   EQUAL, DOUBLE_EQUAL,
@@ -26,21 +26,24 @@ enum token_type {
   TRUE, FALSE, THIS, _NULL,
   RETURN, _EOF,
   PRINT, SCAN,
-  BREAK, CONTINUE
+  BREAK, CONTINUE,
+  LABEL, GOTO
 };
 
 struct func_t;
+struct Instance;
 
-using literal_t = std::variant<token_type, int, double, std::string, std::shared_ptr<func_t>>;
+using literal_t = std::variant<token_type, int, double, std::string, std::shared_ptr<func_t>, std::shared_ptr<Instance>>;
+
 enum literal_type {
   RESERV, INT_T, DOUBLE, STRING_T, FUNC_T
 };
 
 struct Token {
-    const token_type type;
-    const std::string lexeme;
+    token_type type;
+    std::string lexeme;
     literal_t literal;
-    const int line;
+    int line;
 
     Token(token_type i_type, std::string i_lexeme, const literal_t* i_literal, int i_line);
     Token operator=(Token tok);

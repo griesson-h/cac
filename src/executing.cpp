@@ -1,4 +1,5 @@
 #include "executing.h"
+#include "classes.h"
 #include "environment.h"
 #include "expressions.h"
 #include "function.h"
@@ -9,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 #include <string>
@@ -17,7 +19,9 @@
 std::shared_ptr<Environment> Interpreter::env(new Environment);
 std::shared_ptr<Environment> Interpreter::backup_env(nullptr);
 std::unordered_map<expr*, int> Interpreter::locals;
+std::unordered_map<std::string, long> Interpreter::labels;
 bool Interpreter::passed_first_init = false;
+long Interpreter::current = 0;
 
 bool Interpreter::in_loop = false;
 
@@ -28,8 +32,8 @@ void Interpreter::interpret(std::vector<Stmt> &statements) {
   }
   passed_first_init = true;
   try {
-    for (auto& statement : statements) {
-      execute(statement);
+    for (; current < statements.capacity(); current++) {
+      execute(statements[current]);
     }
   } catch(RuntimeError e) {
     if (!backup_env) env = backup_env;
@@ -46,6 +50,8 @@ void Interpreter::init_foreigns() {
   env->define(Token(IDENT, "time", nullptr, 0), time);
   std::shared_ptr<func_t> to_string(new Foreigns::ToString);
   env->define(Token(IDENT, "str", nullptr, 0), to_string);
+  std::shared_ptr<func_t> to_int(new Foreigns::ToInteger);
+  env->define(Token(IDENT, "int", nullptr, 0), to_int);
 }
 
 void Interpreter::execute(Stmt &stmt) {
@@ -126,7 +132,7 @@ void Interpreter::execute_over(ContinueStmt &stmt) {
   //throw Continue();
 }
 void Interpreter::execute_over(FunDecl &stmt) {
-  std::shared_ptr<func_t> function(new Function(stmt, env));
+  std::shared_ptr<func_t> function(new Function(stmt, env, false));
   env->define(stmt.name, function);
 }
 void Interpreter::execute_over(ReturnStmt &stmt) {
@@ -134,6 +140,29 @@ void Interpreter::execute_over(ReturnStmt &stmt) {
   throw Return(return_value);
 }
 Interpreter::Return::Return(literal_t value) : value(value) {}
+void Interpreter::execute_over(ClassDecl &stmt) {
+  env->define(stmt.name, _NULL);
+
+  std::unordered_map<std::string, std::shared_ptr<func_t>> methods;
+  for (auto& method: stmt.methods) {
+    std::shared_ptr<func_t> function(new Function(method, env, (method.name.lexeme == stmt.name.lexeme)));
+    methods[method.name.lexeme] = function;
+  }
+
+  std::shared_ptr<func_t> klass (new Classs(stmt.name, methods));
+  env->assign(stmt.name, klass);
+}
+
+void Interpreter::execute_over(Label &stmt) {}
+void Interpreter::execute_over(Goto &stmt) {
+  try {
+    current = labels.at(stmt.name.lexeme);
+  } catch (std::out_of_range) {
+    std::stringstream ss;
+    ss << "Undefined label '" << stmt.name.lexeme << "'";
+    throw RuntimeError(stmt.name, ss.str());
+  }
+}
 
 
 literal_t Interpreter::evaluate(expr &ex) {
@@ -222,13 +251,19 @@ const char* Interpreter::RuntimeError::what() const noexcept {
   return msg.c_str();
 }
 
-literal_t Interpreter::evaluate_over(Variable &ex) {
+literal_t Interpreter::lookup_variables(Token name, expr &ex) {
   try {
     int distance = locals.at(reinterpret_cast<expr*>(&ex));
-    return env->get_at(distance, ex.name);
+    return env->get_at(distance, name);
   } catch(std::out_of_range) {
-    return backup_env->get(ex.name);
+    return backup_env->get(name);
   }
+}
+literal_t Interpreter::evaluate_over(Variable &ex) {
+  return lookup_variables(ex.name, reinterpret_cast<expr&>(ex));
+}
+literal_t Interpreter::evaluate_over(This &ex) {
+  return lookup_variables(ex.tok, reinterpret_cast<expr&>(ex));
 }
 
 literal_t Interpreter::evaluate_over(Assign &ex) {
@@ -255,7 +290,7 @@ literal_t Interpreter::evaluate_over(LogicalBin &ex) {
 literal_t Interpreter::evaluate_over(Call &ex) {
   literal_t callee = evaluate(*ex.callee);
   
-  if (!std::holds_alternative<std::shared_ptr<func_t>>(callee)) {
+  if (!LitOp::contains<std::shared_ptr<func_t>>(callee)) {
     throw RuntimeError(ex.tok, "Cannot call a non-callable expression");
   }
   auto &fun = std::get<std::shared_ptr<func_t>>(callee);
@@ -271,10 +306,29 @@ literal_t Interpreter::evaluate_over(Call &ex) {
     throw RuntimeError(ex.tok, ss.str());
   }
 
-  return fun->call(args);
+  return fun->call(args, ex.tok);
+}
+literal_t Interpreter::evaluate_over(Get &ex) {
+  literal_t object = evaluate(*ex.object);
+  if (auto obj = std::get_if<std::shared_ptr<Instance>>(&object)) {
+    return (*obj)->get(ex.name);
+  }
+
+  throw RuntimeError(ex.name, "Cannot use '.' (get property) operation on a non-instance value");
+}
+literal_t Interpreter::evaluate_over(Set &ex) {
+  literal_t object = evaluate(*ex.object);
+
+  if (!LitOp::contains<std::shared_ptr<Instance>>(object)) {
+    throw RuntimeError(ex.name, "Cannot use '.' (set property) operation on a non-instance value");
+  }
+
+  literal_t value = evaluate(*ex.value);
+  std::get<std::shared_ptr<Instance>>(object)->set(ex.name, value);
+  return value;
 }
 literal_t Interpreter::evaluate_over(Lambda &ex) {
   std::stringstream ss;
-  std::shared_ptr<func_t> lambda(new Function(*ex.decl, env));
+  std::shared_ptr<func_t> lambda(new Function(*ex.decl, env, false));
   return lambda;
 }

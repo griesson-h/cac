@@ -1,8 +1,10 @@
+#include "executing.h"
 #include "function.h"
 #include "expressions.h"
 #include "interpreter.h"
 #include "statements.h"
 #include "lexer.h"
+#include "classes.h"
 #include <memory>
 #include <variant>
 #include <iostream>
@@ -31,6 +33,9 @@ LogicalBin::LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second
   second.swap(this->second);
 }
 Lambda::Lambda(std::shared_ptr<FunDecl> decl) : decl(decl) {}
+Get::Get(std::shared_ptr<expr> object, Token name) : object(object), name(name) {}
+Set::Set(std::shared_ptr<expr> object, Token name, std::shared_ptr<expr> value) : object(object), name(name), value(value) {}
+This::This(Token tok) : tok(tok) {}
 
 bool is_not_null_expr(expr ex) { // that's a BAD way of saying something is null but, uh, here we are
   switch (ex.index()) {          // basicly if it's just 'Literal(literal_t(_NULL))' then true but very verbose because c++
@@ -50,6 +55,8 @@ std::string LitOp::literal_to_string(literal_t lit) {
   } else if (auto val = std::get_if<double>(&lit)) {
     return std::to_string(*val);
   } else if (auto val = std::get_if<std::shared_ptr<func_t>>(&lit)) {
+    return (*val)->to_string();
+  } else if (auto val = std::get_if<std::shared_ptr<Instance>>(&lit)) {
     return (*val)->to_string();
   } else {
     switch (std::get<token_type>(lit)) {
@@ -91,6 +98,7 @@ bool LitOp::if_true_over(int lit) {if (lit == 0) return false;return true;}
 bool LitOp::if_true_over(double lit) {if (lit == 0.0) return false;return true;}
 bool LitOp::if_true_over(std::string lit) {return true;}
 bool LitOp::if_true_over(std::shared_ptr<func_t> lit) {return true;}
+bool LitOp::if_true_over(std::shared_ptr<Instance> lit) {return true;}
 
 // oh my fucking god that's gonna be awful kill me
 // please if someone who knows how to programm this normally tell me because i'm about to go crazy

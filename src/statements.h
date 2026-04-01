@@ -16,9 +16,12 @@ struct FunDecl;
 struct ReturnStmt;
 struct BreakStmt;
 struct ContinueStmt;
+struct ClassDecl;
+struct Label;
+struct Goto;
 
 
-using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt, FunDecl, ReturnStmt, BreakStmt, ContinueStmt>;
+using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt, FunDecl, ReturnStmt, BreakStmt, ContinueStmt, ClassDecl, Label, Goto>;
 
 
 struct ExprStmt {
@@ -71,6 +74,19 @@ struct BreakStmt {
 struct ContinueStmt {
   ContinueStmt(Token tok);
   Token tok;
+};
+struct ClassDecl {
+  ClassDecl(Token name, std::vector<FunDecl> methods);
+  Token name;
+  std::vector<FunDecl> methods;
+};
+struct Label {
+  Label(Token name);
+  Token name;
+};
+struct Goto {
+  Goto(Token name);
+  Token name;
 };
 
 //struct InnerExprStmt {Stmt stmt; InnerExprStmt(Stmt stmt); void operator=(Stmt stmt);};

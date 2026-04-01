@@ -17,6 +17,7 @@
 
 bool failed = false;
 bool failed_at_runtime = false;
+const bool debuginfo = false;
 
 std::unordered_map<std::string, std::vector<Stmt>> ASTs;
 
@@ -43,18 +44,26 @@ void report_at_runtime(Token token, std::string msg, const char* file) {
     << "\nRUNTIME ERROR: " << msg << std::endl;
   failed_at_runtime = true;
 }
+void report_warning(int line, const char* message, const char* file) {
+  std::cout << "<file " << file << ", line " << line << "> " << ": WARNING: " << message << std::endl;
+}
 
 void run(std::string bytes, std::string file) {
   if (failed) return;
 
-  std::cout << "------------debug------------" << std::endl;
+  if (debuginfo)
+    std::cout << "------------debug------------" << std::endl;
 
   lex_tokens(bytes);
-  int i = 0;
-  for (auto token : tokens) {
-    std::cout << std::endl << token.to_string() << '\t' << "id: " << i << std::endl;
-    i++;
+
+  if (debuginfo) {
+    int i = 0;
+    for (auto token : tokens) {
+      std::cout << std::endl << token.to_string() << '\t' << "id: " << i << std::endl;
+      i++;
+    }
   }
+
   if (failed) { // later i'm gonna make a bit more convienient error handling rather than doing a bunch of if statments (hopefully)
     std::cout << "Lexer failed, aborting\n";
     return;
@@ -68,13 +77,15 @@ void run(std::string bytes, std::string file) {
     std::cout << "Parser failed, aborting\n";
     return;
   }
+  Resolver::define_foreigns();
   Resolver::resolve(ASTs[file]);
   if (failed) {
     std::cout << "Resolver failed, aborting\n";
     return;
   }
 
-  std::cout << "------------output------------" << std::endl;
+  if (debuginfo)
+    std::cout << "------------output------------" << std::endl;
 
   Interpreter::interpret(ASTs[file]);
   if (failed_at_runtime) return;

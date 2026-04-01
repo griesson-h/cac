@@ -1,5 +1,8 @@
-func a(b) {
-    zaprintit str(b) + "\n";
-}
-a(2);
-zaprintit str(time()) + "\n";
+var a = 0;
+label a:
+  a = a + 1;
+goto b;
+label b:
+  zaprintit str(a) + "\n";
+  if a < 20
+    goto a;

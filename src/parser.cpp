@@ -45,6 +45,7 @@ Stmt Parser::declaration() {
   try {
     if (match(FUNC)) {current++; return func_decl();}
     if (match(VAR)) {current++; return var_decl();}
+    if (match(CLASS)) {current++; return class_decl();}
     return statement();
   } catch (Error::ParseError err) {
     failed = true;
@@ -80,8 +81,21 @@ Stmt Parser::var_decl() {
     initializer = expression();
   }
 
-  Error::consume(SEMI, "Expected ';' after expression");
+  Error::consume(SEMI, "Expected ';' after statement");
   return Var(ident, initializer);
+}
+Stmt Parser::class_decl() {
+  Token ident = Error::consume(IDENT, "Expected identifier after 'class' token");
+  // handle inheretence
+  Error::consume(LEFT_BRACE, "Expected '{' after class declaration");
+  std::vector<FunDecl> methods;
+  while (!match(RIGHT_BRACE) && !__EOF()) {
+    FunDecl decl = std::get<FunDecl>(declaration());
+    methods.push_back(decl);
+  }
+  Error::consume(RIGHT_BRACE, "Expected '}' after class declaration");
+  Error::consume(SEMI, "Expected ';' after statement");
+  return ClassDecl(ident, methods);
 }
 
 Stmt Parser::statement() {
@@ -94,6 +108,8 @@ Stmt Parser::statement() {
   if (match(BREAK)) {current++; return break_statement();}
   if (match(CONTINUE)) {current++; return continue_statement();}
   if (match(RETURN)) {current++; return return_statement();}
+  if (match(LABEL)) {current++; return label_statement();}
+  if (match(GOTO)) {current++; return goto_statement();}
 
   return expr_statement();
 }
@@ -240,6 +256,18 @@ Stmt Parser::return_statement() {
   return ReturnStmt(tok, return_value);
 }
 
+Stmt Parser::label_statement() {
+  Token name = Error::consume(IDENT, "Expected identifier after 'label' statement");
+  Error::consume(COLON, "Expected ':' after label declaration");
+  return Label(name);
+}
+
+Stmt Parser::goto_statement() {
+  Token name = Error::consume(IDENT, "Expected identifier after 'goto' statement");
+  Error::consume(SEMI, "Expected ';' after statement");
+  return Goto(name);
+}
+
 
 expr Parser::expression() {
   return assignment();
@@ -256,6 +284,9 @@ expr Parser::assignment() {
     if (std::holds_alternative<Variable>(ex)) {
       Token identifier = std::get<Variable>(ex).name;
       return Assign(identifier, std::make_shared<expr>(value));
+    } else if (std::holds_alternative<Get>(ex)) {
+      Get get = std::get<Get>(ex);
+      return Set(get.object, get.name, std::make_shared<expr>(value));
     }
 
     Error::error(token_to_report, "holy fucking shit i wanna sleep");
@@ -387,19 +418,27 @@ expr Parser::unary() {
 expr Parser::call() {
   expr ex = primary();
   
-  while (match(LEFT_PARENTH)) {
-    current++;
-    std::vector<expr> args;
-    if (!match(RIGHT_PARENTH)) {
-      do {
-        if (args.capacity() >= MAX_ARGS) Error::error(tokens[current], "Argument overflow");
-        args.push_back(expression());
-      } while (match_consume(COMMA));
-    }
-    Token paren = Error::consume(RIGHT_PARENTH, "Unterminated function call");
-    expr exT = ex;
-    ex = Literal(literal_t(_NULL));
-    ex = Call(std::make_shared<expr>(exT), paren, args);
+  while (true) {
+    if (match(LEFT_PARENTH)) {
+      current++;
+      std::vector<expr> args;
+      if (!match(RIGHT_PARENTH)) {
+        do {
+          if (args.capacity() >= MAX_ARGS) Error::error(tokens[current], "Argument overflow");
+          args.push_back(expression());
+        } while (match_consume(COMMA));
+      }
+      Token paren = Error::consume(RIGHT_PARENTH, "Unterminated function call");
+      expr exT = ex;
+      ex = Literal(literal_t(_NULL));
+      ex = Call(std::make_shared<expr>(exT), paren, args);
+    } else if (match(DOT)) {
+      current++;
+      Token prop = Error::consume(IDENT, "Expected propety name after '.'");
+      expr exT = ex;
+      ex = Literal(literal_t(_NULL));
+      ex = Get(std::make_shared<expr>(exT), prop);
+    } else break;
   }
 
   return ex;
@@ -421,6 +460,8 @@ expr Parser::primary() {
     Error::consume(RIGHT_PARENTH, "Expected ')' after group expression");
     return Group(std::make_shared<expr>(ex));
   }
+
+  if (match(THIS)) {current++; return This(tokens[current - 1]);}
 
   if (match(IDENT)) {
     current++;
@@ -506,6 +547,15 @@ std::string PreatyPrinter::print_over(Call expr) {
   return "nah";
 }
 std::string PreatyPrinter::print_over(Lambda expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(Get expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(Set expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(This expr) {
   return "nah";
 }
 

@@ -18,6 +18,7 @@ public:
 
   static std::shared_ptr<Environment> env;
   static std::shared_ptr<Environment> backup_env; // pointer to the global environment to recover it after block statement/s
+  static std::unordered_map<std::string, long> labels;
 
   static void execute_block(std::vector<Stmt> &stmts, Environment &new_env);
 
@@ -35,11 +36,13 @@ public:
     Return(literal_t value);
   };
 private:
+  static long current;
   static bool in_loop;
   static bool passed_first_init;
   static std::unordered_map<expr*, int> locals;
 
   static void init_foreigns();
+  static literal_t lookup_variables(Token name, expr &ex);
 
   static void execute(Stmt &stmt);
   static void execute_over(std::monostate&);
@@ -54,6 +57,9 @@ private:
   static void execute_over(BreakStmt &stmt);
   static void execute_over(ContinueStmt &stmt);
   static void execute_over(ReturnStmt &stmt);
+  static void execute_over(ClassDecl &stmt);
+  static void execute_over(Label &stmt);
+  static void execute_over(Goto &stmt);
 
   static literal_t evaluate(expr &ex);
   static literal_t evaluate_over(Literal &ex);
@@ -64,6 +70,9 @@ private:
   static literal_t evaluate_over(Assign &ex);
   static literal_t evaluate_over(LogicalBin &ex);
   static literal_t evaluate_over(Call &ex);
+  static literal_t evaluate_over(Get &ex);
+  static literal_t evaluate_over(Set &ex);
+  static literal_t evaluate_over(This &ex);
   static literal_t evaluate_over(Lambda &ex);
 
   class Break : public std::exception {};
