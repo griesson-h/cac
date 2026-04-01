@@ -17,8 +17,9 @@ struct Lambda;
 struct Get;
 struct Set;
 struct This;
+struct Super;
 
-using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call, Lambda, Get, Set, This>;
+using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call, Lambda, Get, Set, This, Super>;
 enum expr_type {
   LITERAL, GROUP, BIN, UNARY
 };
@@ -51,6 +52,11 @@ struct Set {
 struct This {
   This(Token tok);
   Token tok;
+};
+struct Super {
+  Super(Token tok, Token method);
+  Token tok;
+  Token method;
 };
 struct Unary {
   Unary(Token _operator, std::shared_ptr<expr> postfix);
@@ -122,4 +128,5 @@ bool is_not_null_expr(expr ex);
   }
 
   static bool is_numbers(literal_t lit1, literal_t lit2);
+  static std::shared_ptr<func_t> get_callable(literal_t lit, Token tok);
 };

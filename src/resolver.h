@@ -13,7 +13,7 @@ enum class FUNC_TYPE {
   NONE, FUNC, INIT, METHOD
 };
 enum class CLASS_TYPE {
-  NONE, CLASS
+  NONE, CLASS, SUBCLASS
 };
 
 /*abstract*/ class Resolver {
@@ -64,5 +64,6 @@ private:
   static void resolve_over(Get &ex);
   static void resolve_over(Set &ex);
   static void resolve_over(This &ex);
+  static void resolve_over(Super &ex);
   static void resolve_over(Lambda &ex);
 };

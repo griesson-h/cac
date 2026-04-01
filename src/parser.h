@@ -82,5 +82,6 @@ private:
   static std::string print_over(Get expr);
   static std::string print_over(Set expr);
   static std::string print_over(This expr);
+  static std::string print_over(Super expr);
   static std::string parenthesize(const char* name, std::vector<expr> Exprs);
 };

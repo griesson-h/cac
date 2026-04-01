@@ -36,6 +36,7 @@ Lambda::Lambda(std::shared_ptr<FunDecl> decl) : decl(decl) {}
 Get::Get(std::shared_ptr<expr> object, Token name) : object(object), name(name) {}
 Set::Set(std::shared_ptr<expr> object, Token name, std::shared_ptr<expr> value) : object(object), name(name), value(value) {}
 This::This(Token tok) : tok(tok) {}
+Super::Super(Token tok, Token method) : tok(tok), method(method) {}
 
 bool is_not_null_expr(expr ex) { // that's a BAD way of saying something is null but, uh, here we are
   switch (ex.index()) {          // basicly if it's just 'Literal(literal_t(_NULL))' then true but very verbose because c++
@@ -55,6 +56,8 @@ std::string LitOp::literal_to_string(literal_t lit) {
   } else if (auto val = std::get_if<double>(&lit)) {
     return std::to_string(*val);
   } else if (auto val = std::get_if<std::shared_ptr<func_t>>(&lit)) {
+    return (*val)->to_string();
+  } else if (auto val = std::get_if<std::shared_ptr<class_t>>(&lit)) {
     return (*val)->to_string();
   } else if (auto val = std::get_if<std::shared_ptr<Instance>>(&lit)) {
     return (*val)->to_string();
@@ -295,4 +298,14 @@ literal_t LitOp::less_equal(literal_t first, literal_t second) {
 bool LitOp::is_numbers(literal_t lit1, literal_t lit2) {
   return ((LitOp::contains<int>(lit1) || LitOp::contains<double>(lit1)) &&
           (LitOp::contains<int>(lit2) || LitOp::contains<double>(lit2)));
+}
+
+std::shared_ptr<func_t> LitOp::get_callable(literal_t lit, Token tok) {
+  if (auto val = std::get_if<std::shared_ptr<func_t>>(&lit)) {
+    return *val;
+  } else if (auto val = std::get_if<std::shared_ptr<class_t>>(&lit)) {
+    return std::shared_ptr<func_t>(*val);
+  } else {
+    throw Interpreter::RuntimeError(tok, "Cannot call a non-callable expression");
+  }
 }

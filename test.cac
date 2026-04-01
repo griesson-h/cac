@@ -1,8 +1,16 @@
-var a = 0;
-label a:
-  a = a + 1;
-goto b;
-label b:
-  zaprintit str(a) + "\n";
-  if a < 20
-    goto a;
+class A {
+  //func a_method() {zaprintit "hahaha i'm a_method!\n";}
+  func a_method() {superduper.sad();}
+};
+
+class B : A {
+  func a_method() {zaprintit "i'm the a_method overriden by B class\n";}
+  func b_method() {
+    superduper.a_method();
+  }
+};
+
+var b_instance = B();
+b_instance.a_method();
+b_instance.b_method();
+

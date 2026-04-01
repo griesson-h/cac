@@ -86,16 +86,22 @@ Stmt Parser::var_decl() {
 }
 Stmt Parser::class_decl() {
   Token ident = Error::consume(IDENT, "Expected identifier after 'class' token");
-  // handle inheretence
+  expr base = literal_t(_NULL);
+  if (match(COLON)) {
+    current++;
+    Error::consume(IDENT, "Expected superclass name");
+    base = Variable(tokens[current - 1]);
+  }
   Error::consume(LEFT_BRACE, "Expected '{' after class declaration");
   std::vector<FunDecl> methods;
   while (!match(RIGHT_BRACE) && !__EOF()) {
-    FunDecl decl = std::get<FunDecl>(declaration());
+    Error::consume(FUNC, "Expected 'func' token");
+    FunDecl decl = std::get<FunDecl>(func_decl());
     methods.push_back(decl);
   }
   Error::consume(RIGHT_BRACE, "Expected '}' after class declaration");
   Error::consume(SEMI, "Expected ';' after statement");
-  return ClassDecl(ident, methods);
+  return ClassDecl(ident, methods, base);
 }
 
 Stmt Parser::statement() {
@@ -461,6 +467,14 @@ expr Parser::primary() {
     return Group(std::make_shared<expr>(ex));
   }
 
+  if (match(SUPER)) {
+    Token tok = tokens[current];
+    current++;
+    Error::consume(DOT, "Cannot reference the superclass itself, only its methods");
+    Token method = Error::consume(IDENT, "Expected property after '.'");
+    return Super(tok, method);
+  }
+
   if (match(THIS)) {current++; return This(tokens[current - 1]);}
 
   if (match(IDENT)) {
@@ -556,6 +570,9 @@ std::string PreatyPrinter::print_over(Set expr) {
   return "nah";
 }
 std::string PreatyPrinter::print_over(This expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(Super expr) {
   return "nah";
 }
 

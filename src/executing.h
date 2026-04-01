@@ -73,6 +73,7 @@ private:
   static literal_t evaluate_over(Get &ex);
   static literal_t evaluate_over(Set &ex);
   static literal_t evaluate_over(This &ex);
+  static literal_t evaluate_over(Super &ex);
   static literal_t evaluate_over(Lambda &ex);
 
   class Break : public std::exception {};

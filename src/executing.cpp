@@ -140,8 +140,22 @@ void Interpreter::execute_over(ReturnStmt &stmt) {
   throw Return(return_value);
 }
 Interpreter::Return::Return(literal_t value) : value(value) {}
+
 void Interpreter::execute_over(ClassDecl &stmt) {
+  auto previous = env;
   env->define(stmt.name, _NULL);
+
+  std::shared_ptr<class_t> base(nullptr);
+  if (is_not_null_expr(stmt.base)) {
+    auto base_lit= evaluate(stmt.base);
+    if (!LitOp::contains<std::shared_ptr<class_t>>(base_lit))
+      throw RuntimeError(stmt.name, "Cannot inherit from a non-class value");
+    base = std::get<std::shared_ptr<class_t>>(base_lit);
+    
+    auto new_env = Environment(env);
+    env = std::make_shared<Environment>(new_env);
+    env->define(Token(SUPER, "superduper", nullptr, stmt.name.line), base);
+  }
 
   std::unordered_map<std::string, std::shared_ptr<func_t>> methods;
   for (auto& method: stmt.methods) {
@@ -149,7 +163,10 @@ void Interpreter::execute_over(ClassDecl &stmt) {
     methods[method.name.lexeme] = function;
   }
 
-  std::shared_ptr<func_t> klass (new Classs(stmt.name, methods));
+  if (is_not_null_expr(stmt.base))
+    env = previous;
+
+  std::shared_ptr<class_t> klass (new Classs(stmt.name, methods, base));
   env->assign(stmt.name, klass);
 }
 
@@ -265,6 +282,21 @@ literal_t Interpreter::evaluate_over(Variable &ex) {
 literal_t Interpreter::evaluate_over(This &ex) {
   return lookup_variables(ex.tok, reinterpret_cast<expr&>(ex));
 }
+literal_t Interpreter::evaluate_over(Super& ex) {
+  int distance = locals[reinterpret_cast<expr*>(&ex)];
+  std::shared_ptr<class_t> superclass =
+    std::get<std::shared_ptr<class_t>>(env->get_at(distance, Token(SUPER, "superduper", nullptr, ex.tok.line)));
+
+  std::shared_ptr<Instance> instance = 
+    std::get<std::shared_ptr<Instance>>(env->get_at(distance - 1, Token(THIS, "this", nullptr, ex.tok.line)));
+  std::shared_ptr<func_t> method = superclass->lookup_method(ex.method);
+  if (!method) {
+    std::stringstream ss;
+    ss << "Undefined property '" << ex.method.lexeme << "'";
+    throw RuntimeError(ex.method, ss.str());
+  }
+  return method->bind(instance);
+}
 
 literal_t Interpreter::evaluate_over(Assign &ex) {
   literal_t value = evaluate(*ex.value);
@@ -290,10 +322,7 @@ literal_t Interpreter::evaluate_over(LogicalBin &ex) {
 literal_t Interpreter::evaluate_over(Call &ex) {
   literal_t callee = evaluate(*ex.callee);
   
-  if (!LitOp::contains<std::shared_ptr<func_t>>(callee)) {
-    throw RuntimeError(ex.tok, "Cannot call a non-callable expression");
-  }
-  auto &fun = std::get<std::shared_ptr<func_t>>(callee);
+  auto fun = LitOp::get_callable(callee, ex.tok);
 
   std::vector<literal_t> args;
   for (auto& arg : ex.Args) {

@@ -1,6 +1,7 @@
 #include "statements.h"
 #include "expressions.h"
 #include "lexer.h"
+#include <memory>
 #include <vector>
 
 PrintStmt::PrintStmt(expr exp) : exp(exp) {}
@@ -19,7 +20,7 @@ FunDecl::FunDecl(Token name, std::vector<Token> param, std::vector<Stmt> body) :
 BreakStmt::BreakStmt(Token tok) : tok(tok) {}
 ContinueStmt::ContinueStmt(Token tok) : tok(tok) {}
 ReturnStmt::ReturnStmt(Token tok, expr return_value) : tok(tok), return_value(return_value) {}
-ClassDecl::ClassDecl(Token name, std::vector<FunDecl> methods) : name(name), methods(methods) {}
+ClassDecl::ClassDecl(Token name, std::vector<FunDecl> methods, expr base) : name(name), methods(methods), base(base) {}
 Label::Label(Token name) : name(name) {}
 Goto::Goto(Token name) : name(name) {}
 

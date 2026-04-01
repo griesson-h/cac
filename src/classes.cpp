@@ -8,9 +8,11 @@
 std::string class_t::to_string() {return "";}
 literal_t class_t::call(std::vector<literal_t> args, Token) {return _NULL;}
 int class_t::arity() {return 0;}
+std::shared_ptr<func_t> class_t::lookup_method(Token) {return nullptr;}
+Token class_t::get_token() {return null_token;}
 
 Classs::Classs(Token name) : name(name) {}
-Classs::Classs(Token name, std::unordered_map<std::string, std::shared_ptr<func_t>> methods) : name(name), methods(methods) {}
+Classs::Classs(Token name, std::unordered_map<std::string, std::shared_ptr<func_t>> methods, std::shared_ptr<class_t> base) : name(name), methods(methods), base(base) {}
 literal_t Classs::call(std::vector<literal_t> args, Token) {
   Classs thiss = *this;
   std::shared_ptr<Instance> instance (new Instance(std::make_shared<Classs>(thiss)));
@@ -35,13 +37,19 @@ std::shared_ptr<func_t> Classs::lookup_method(Token name) {
     return methods[name.lexeme];
   }
 
+  if (base)
+    return base->lookup_method(name);
+
   return nullptr;
 }
+Token Classs::get_token() {
+  return name;
+}
 
-Instance::Instance(std::shared_ptr<Classs> klass) : klass(klass) {}
+Instance::Instance(std::shared_ptr<class_t> klass) : klass(klass) {}
 std::string Instance::to_string() {
   std::stringstream ss;
-  ss << "<why whould you even print an instance of class '" << klass->name.lexeme << "'? Uh, people are so weird ):>";
+  ss << "<why whould you even print an instance of class '" << klass->get_token().lexeme << "'? Uh, people are so weird ):>";
   return ss.str();
 }
 literal_t Instance::get(Token name) {

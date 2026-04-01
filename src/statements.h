@@ -76,8 +76,9 @@ struct ContinueStmt {
   Token tok;
 };
 struct ClassDecl {
-  ClassDecl(Token name, std::vector<FunDecl> methods);
+  ClassDecl(Token name, std::vector<FunDecl> methods, expr base);
   Token name;
+  expr base;
   std::vector<FunDecl> methods;
 };
 struct Label {

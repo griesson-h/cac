@@ -131,12 +131,23 @@ void Resolver::resolve_over(ClassDecl& stmt) {
   begin_scope();
   scopes.front()["this"] = std::pair<RESOLVE, int>(RESOLVE::USED, stmt.name.line);
 
+  if (is_not_null_expr(stmt.base)) {
+    if (std::get<Variable>(stmt.base).name.lexeme == stmt.name.lexeme)
+      report(stmt.name, "Cannot inherit from itself");
+    currentClassType = CLASS_TYPE::SUBCLASS;
+    resolve(stmt.base);
+    begin_scope();
+    scopes.front()["super"] = std::pair<RESOLVE, int>(RESOLVE::USED, stmt.name.line);
+  }
+
   for (auto &method : stmt.methods) {
     FUNC_TYPE declaration = FUNC_TYPE::METHOD;
     if (method.name.lexeme == stmt.name.lexeme)
       declaration = FUNC_TYPE::INIT;
     resolve_func(method, declaration);
   }
+  if (is_not_null_expr(stmt.base))
+    end_scope();
   end_scope();
   currentClassType = enclose;
 }
@@ -181,6 +192,15 @@ void Resolver::resolve_over(Set& ex) {
 void Resolver::resolve_over(This& ex) {
   if (currentClassType == CLASS_TYPE::NONE)
     report(ex.tok, "Cannot use 'this' outside a class definition");
+  resolve_local(reinterpret_cast<expr&>(ex), ex.tok);
+}
+
+void Resolver::resolve_over(Super& ex) {
+  if (currentClassType == CLASS_TYPE::NONE)
+    report(ex.tok, "Cannot use 'superduper' outside a class definition");
+  else if (currentClassType == CLASS_TYPE::CLASS) {
+    report(ex.tok, "Cannot use 'superduper' inside a class that doesn't have a base");
+  }
   resolve_local(reinterpret_cast<expr&>(ex), ex.tok);
 }
 
