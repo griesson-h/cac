@@ -7,6 +7,7 @@
 #include "lexer.h"
 #include "statements.h"
 #include <exception>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -33,7 +34,7 @@ void Interpreter::interpret(std::vector<Stmt> &statements) {
   passed_first_init = true;
   current = 0;
   try {
-    for (; current < statements.capacity(); current++) {
+    for (; current < statements.size(); current++) {
       execute(statements[current]);
     }
   } catch(RuntimeError e) {
@@ -336,9 +337,9 @@ literal_t Interpreter::evaluate_over(Call &ex) {
     args.push_back(evaluate(arg));
   }
 
-  if (args.capacity() != fun->arity()) {
+  if (args.size() != fun->arity()) {
     std::stringstream ss;
-    ss << "Expected " << fun->arity() << " arguments to be passed, but found " << args.capacity();
+    ss << "Expected " << fun->arity() << " arguments to be passed, but found " << args.size();
     throw RuntimeError(ex.tok, ss.str());
   }
 
@@ -367,4 +368,46 @@ literal_t Interpreter::evaluate_over(Lambda &ex) {
   std::stringstream ss;
   std::shared_ptr<func_t> lambda(new Function(*ex.decl, env, false));
   return lambda;
+}
+literal_t Interpreter::evaluate_over(ListExpr &ex) {
+  std::vector<literal_t> values;
+  for (auto& expr : ex.values) {
+    values.push_back(evaluate(expr));
+  }
+  return std::shared_ptr<List>(new List(values));
+}
+literal_t Interpreter::evaluate_over(ListGet &ex) {
+  literal_t indexl = evaluate(*ex.index);
+  literal_t listl = evaluate(*ex.list);
+
+  if (!LitOp::contains<std::shared_ptr<List>>(listl)) {
+    throw RuntimeError(ex.tok, "Cannot get element of a non-list value");
+  }
+  if (!LitOp::contains<int>(indexl)) {
+    throw RuntimeError(ex.tok, "Cannot get element by non-integer value");
+  }
+
+  int index = std::get<int>(indexl);
+  auto list = std::get<std::shared_ptr<List>>(listl);
+
+  return list->get(index, ex.tok);
+}
+literal_t Interpreter::evaluate_over(ListSet &ex) {
+  literal_t indexl = evaluate(*ex.index);
+  literal_t listl = evaluate(*ex.list);
+
+  if (!LitOp::contains<std::shared_ptr<List>>(listl)) {
+    throw RuntimeError(ex.tok, "Cannot get element of a non-list value");
+  }
+  if (!LitOp::contains<int>(indexl)) {
+    throw RuntimeError(ex.tok, "Cannot get element by non-integer value");
+  }
+
+  int index = std::get<int>(indexl);
+  auto list = std::get<std::shared_ptr<List>>(listl);
+
+  literal_t value = evaluate(*ex.value);
+
+  list->set(index, value);
+  return value;
 }

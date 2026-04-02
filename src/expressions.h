@@ -1,5 +1,6 @@
 #pragma once
 #include "lexer.h"
+#include "list.h"
 #include <memory>
 #include <variant>
 #include <string>
@@ -18,8 +19,11 @@ struct Get;
 struct Set;
 struct This;
 struct Super;
+struct ListExpr;
+struct ListGet;
+struct ListSet;
 
-using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call, Lambda, Get, Set, This, Super>;
+using expr = std::variant<Literal, Group, Binary, Unary, Variable, Assign, LogicalBin, Call, Lambda, Get, Set, This, Super, ListExpr, ListGet, ListSet>;
 enum expr_type {
   LITERAL, GROUP, BIN, UNARY
 };
@@ -84,6 +88,24 @@ struct LogicalBin {
   Token _operator;
   std::shared_ptr<expr> second;
 };
+struct ListExpr {
+  ListExpr(Token tok, std::vector<expr> values);
+  Token tok;
+  std::vector<expr> values;
+};
+struct ListGet {
+  ListGet(Token tok, std::shared_ptr<expr> list, std::shared_ptr<expr> index);
+  Token tok;
+  std::shared_ptr<expr> list;
+  std::shared_ptr<expr> index;
+};
+struct ListSet {
+  ListSet(Token tok, std::shared_ptr<expr> list, std::shared_ptr<expr> index, std::shared_ptr<expr> value);
+  Token tok;
+  std::shared_ptr<expr> list;
+  std::shared_ptr<expr> index;
+  std::shared_ptr<expr> value;
+};
 
 struct FunDecl;
 
@@ -105,6 +127,7 @@ bool is_not_null_expr(expr ex);
   static bool if_true_over(std::string lit);
   static bool if_true_over(std::shared_ptr<func_t> lit);
   static bool if_true_over(std::shared_ptr<Instance> lit);
+  static bool if_true_over(std::shared_ptr<List> lit);
   
   static literal_t add(literal_t lit1, literal_t li2);
   static literal_t sub(literal_t lit1, literal_t li2);

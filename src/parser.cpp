@@ -61,7 +61,7 @@ Stmt Parser::func_decl() {
   std::vector<Token> param;
   if (!match(RIGHT_PARENTH)) {
     do {
-      if (param.capacity() >= MAX_ARGS)
+      if (param.size() >= MAX_ARGS)
         Error::error(tokens[current], "Parameter overflow");
       param.push_back(Error::consume(IDENT, "Expected identifier"));
     } while (match_consume(COMMA));
@@ -310,6 +310,9 @@ expr Parser::assignment() {
     } else if (std::holds_alternative<Get>(ex)) {
       Get get = std::get<Get>(ex);
       return Set(get.object, get.name, std::make_shared<expr>(value));
+    } else if (std::holds_alternative<ListGet>(ex)) {
+      ListGet get = std::get<ListGet>(ex);
+      return ListSet(token_to_report, get.list, get.index, std::make_shared<expr>(value));
     }
 
     Error::error(token_to_report, "holy fucking shit i wanna sleep");
@@ -326,7 +329,7 @@ expr Parser::lambda() {
     std::vector<Token> param;
     if (!match(RIGHT_PARENTH)) {
       do {
-        if (param.capacity() >= MAX_ARGS)
+        if (param.size() >= MAX_ARGS)
           Error::error(tokens[current], "Parameter overflow");
         param.push_back(Error::consume(IDENT, "Expected identifier"));
       } while(match_consume(COMMA));
@@ -337,7 +340,7 @@ expr Parser::lambda() {
     Block block = Block(block_statement());
     
     std::stringstream ss;
-    ss << "lambda." << tok.line << "." << param.capacity();
+    ss << "lambda." << tok.line << "." << param.size();
     Token name = Token(IDENT, ss.str().c_str(), nullptr, tok.line);
     std::shared_ptr<FunDecl> decl(new FunDecl(name, param, block.stmts));
     return Lambda(decl);
@@ -447,7 +450,7 @@ expr Parser::call() {
       std::vector<expr> args;
       if (!match(RIGHT_PARENTH)) {
         do {
-          if (args.capacity() >= MAX_ARGS) Error::error(tokens[current], "Argument overflow");
+          if (args.size() >= MAX_ARGS) Error::error(tokens[current], "Argument overflow");
           args.push_back(expression());
         } while (match_consume(COMMA));
       }
@@ -461,6 +464,14 @@ expr Parser::call() {
       expr exT = ex;
       ex = Literal(literal_t(_NULL));
       ex = Get(std::make_shared<expr>(exT), prop);
+    } else if (match(LEFT_SQR_BR)) {
+      Token tok = tokens[current];
+      current++;
+      expr index = expression();
+      Error::consume(RIGHT_SQR_BR, "Expected closing ']'");
+      expr exT = ex;
+      ex = Literal(literal_t(_NULL));
+      ex = ListGet(tok, std::make_shared<expr>(exT), std::make_shared<expr>(index));
     } else break;
   }
 
@@ -484,6 +495,19 @@ expr Parser::primary() {
     return Group(std::make_shared<expr>(ex));
   }
 
+  if (match(LEFT_SQR_BR)) {
+    Token tok = tokens[current];
+    current++;
+    std::vector<expr> values;
+    if (!match(RIGHT_SQR_BR)) {
+      do {
+        values.push_back(expression());
+      } while (match_consume(COMMA));
+    }
+    Error::consume(RIGHT_SQR_BR, "Unterminated list");
+    return ListExpr(tok, values);
+  }
+
   if (match(SUPER)) {
     Token tok = tokens[current];
     current++;
@@ -495,8 +519,9 @@ expr Parser::primary() {
   if (match(THIS)) {current++; return This(tokens[current - 1]);}
 
   if (match(IDENT)) {
+    Token tok = tokens[current];
     current++;
-    return Variable(tokens[current-1]);
+    return Variable(tok);
   }
 
   std::stringstream ss;
@@ -590,6 +615,15 @@ std::string PreatyPrinter::print_over(This expr) {
   return "nah";
 }
 std::string PreatyPrinter::print_over(Super expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(ListExpr expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(ListGet expr) {
+  return "nah";
+}
+std::string PreatyPrinter::print_over(ListSet expr) {
   return "nah";
 }
 

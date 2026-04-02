@@ -6,37 +6,27 @@
 #include "lexer.h"
 #include "classes.h"
 #include <memory>
+#include <sstream>
 #include <variant>
 #include <iostream>
 #include <vector>
 
-Assign::Assign(Token identifier, std::shared_ptr<expr> value) : identifier(identifier) {
-  value.swap(this->value);
-}
+Assign::Assign(Token identifier, std::shared_ptr<expr> value) : identifier(identifier), value(value) {}
 Literal::Literal(literal_t literal) : literal(literal) {}
-Group::Group(std::shared_ptr<::expr> exp) {
-  exp.swap(this->exp);
-} // "unknown type expr, did you mean ::expr?" compiler wake up youre drunk
-Binary::Binary(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token _operator) : _operator(_operator) {
-  first.swap(this->first);
-  second.swap(this->second);
-}
-Unary::Unary(Token _operator, std::shared_ptr<expr> postfix) : _operator(_operator) {
-  postfix.swap(this->postfix);
-}
+Group::Group(std::shared_ptr<::expr> exp) : exp(exp) {} // "unknown type expr, did you mean ::expr?" compiler wake up youre drunk
+Binary::Binary(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token _operator) : _operator(_operator), first(first), second(second) {}
+Unary::Unary(Token _operator, std::shared_ptr<expr> postfix) : _operator(_operator), postfix(postfix) {}
 Variable::Variable(Token name) : name(name) {}
-Call::Call(std::shared_ptr<expr> callee, Token tok, std::vector<expr> Args) : tok(tok), Args(Args) {
-  callee.swap(this->callee);
-}
-LogicalBin::LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token _operator) : _operator(_operator) {
-  first.swap(this->first);
-  second.swap(this->second);
-}
+Call::Call(std::shared_ptr<expr> callee, Token tok, std::vector<expr> Args) : tok(tok), Args(Args), callee(callee) {}
+LogicalBin::LogicalBin(std::shared_ptr<expr> first, std::shared_ptr<expr> second, Token _operator) : _operator(_operator), first(first), second(second) {}
 Lambda::Lambda(std::shared_ptr<FunDecl> decl) : decl(decl) {}
 Get::Get(std::shared_ptr<expr> object, Token name) : object(object), name(name) {}
 Set::Set(std::shared_ptr<expr> object, Token name, std::shared_ptr<expr> value) : object(object), name(name), value(value) {}
 This::This(Token tok) : tok(tok) {}
 Super::Super(Token tok, Token method) : tok(tok), method(method) {}
+ListExpr::ListExpr(Token tok, std::vector<expr> values) : tok(tok), values(values) {}
+ListGet::ListGet(Token tok, std::shared_ptr<expr> list, std::shared_ptr<expr> index) : tok(tok), list(list), index(index) {}
+ListSet::ListSet(Token tok, std::shared_ptr<expr> list, std::shared_ptr<expr> index, std::shared_ptr<expr> value) : tok(tok), list(list), index(index), value(value) {}
 
 bool is_not_null_expr(expr ex) { // that's a BAD way of saying something is null but, uh, here we are
   switch (ex.index()) {          // basicly if it's just 'Literal(literal_t(_NULL))' then true but very verbose because c++
@@ -61,6 +51,16 @@ std::string LitOp::literal_to_string(literal_t lit) {
     return (*val)->to_string();
   } else if (auto val = std::get_if<std::shared_ptr<Instance>>(&lit)) {
     return (*val)->to_string();
+  } else if (auto val = std::get_if<std::shared_ptr<List>>(&lit)) {
+    std::stringstream ss;
+    ss << "[";
+    for (int i = 0; i < (*val)->values.size(); i++) {
+      ss << literal_to_string((*val)->values[i]);
+      if (i + 1 < (*val)->values.size())
+        ss << ",";
+    }
+    ss << "]";
+    return ss.str();
   } else {
     switch (std::get<token_type>(lit)) {
       case TRUE: return "true"; break;
@@ -102,6 +102,7 @@ bool LitOp::if_true_over(double lit) {if (lit == 0.0) return false;return true;}
 bool LitOp::if_true_over(std::string lit) {return true;}
 bool LitOp::if_true_over(std::shared_ptr<func_t> lit) {return true;}
 bool LitOp::if_true_over(std::shared_ptr<Instance> lit) {return true;}
+bool LitOp::if_true_over(std::shared_ptr<List> lit) {return lit->values.capacity() == 0;}
 
 // oh my fucking god that's gonna be awful kill me
 // please if someone who knows how to programm this normally tell me because i'm about to go crazy

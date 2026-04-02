@@ -35,8 +35,9 @@ enum token_type {
 struct func_t;
 struct class_t;
 struct Instance;
+struct List;
 
-using literal_t = std::variant<token_type, int, double, std::string, std::shared_ptr<func_t>, std::shared_ptr<class_t>, std::shared_ptr<Instance>>;
+using literal_t = std::variant<token_type, int, double, std::string, std::shared_ptr<func_t>, std::shared_ptr<class_t>, std::shared_ptr<Instance>, std::shared_ptr<List>>;
 
 enum literal_type {
   RESERV, INT_T, DOUBLE, STRING_T, FUNC_T

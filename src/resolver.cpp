@@ -33,7 +33,7 @@ void Resolver::define_foreigns() {
   define(Token(IDENT, "FILE", nullptr, 0));
 }
 void Resolver::resolve_init(std::vector<Stmt> &stmts) {
-  for (; current < stmts.capacity(); ++current) {
+  for (; current < stmts.size(); ++current) {
     resolve(stmts[current]);
   }
 }
@@ -170,6 +170,19 @@ void Resolver::resolve_over(Goto& stmt) {}
 
 
 void Resolver::resolve_over(Literal& ex) {}
+
+void Resolver::resolve_over(ListExpr& ex) {}
+
+void Resolver::resolve_over(ListGet& ex) {
+  resolve(*ex.list);
+  resolve(*ex.index);
+}
+
+void Resolver::resolve_over(ListSet& ex) {
+  resolve(*ex.list);
+  resolve(*ex.index);
+  resolve(*ex.value);
+}
 
 void Resolver::resolve_over(Binary& ex) {
   resolve(*ex.first);

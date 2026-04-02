@@ -76,6 +76,9 @@ private:
   static literal_t evaluate_over(This &ex);
   static literal_t evaluate_over(Super &ex);
   static literal_t evaluate_over(Lambda &ex);
+  static literal_t evaluate_over(ListExpr &ex);
+  static literal_t evaluate_over(ListGet &ex);
+  static literal_t evaluate_over(ListSet &ex);
 
   class Break : public std::exception {};
   class Continue : public std::exception {};

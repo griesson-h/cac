@@ -1,8 +1,22 @@
-include "hello.cac"; // zaprintitln
+//include "hello.cac"; // zaprintitln
+//
+//zaprintitln("Hello world!");
+//
+//var a = FILE("tests/test.txt");
+//var text = a.read(0, 0);
+//zaprintitln(text);
+//a.write(len(text), "\nHello from test.cac!");
 
-zaprintitln("Hello world!");
+func push(list, value) {
+    list[len(list)] = value;
+}
 
-var a = FILE("tests/test.txt");
-var text = a.read(0, 0);
-zaprintitln(text);
-a.write(len(text), "\nHello from test.cac!");
+var a = [23, 54, 2];
+
+zaprintit str(a) + "\n";
+
+for 2+2; 2+2; 2+2 {
+    push(a, 23);
+}
+zaprintit "finished\n";
+zaprintit str(a) + "\n";

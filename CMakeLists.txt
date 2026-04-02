@@ -24,4 +24,5 @@ add_executable(${PROJECT_NAME}
     src/function.cpp
     src/resolver.cpp
     src/classes.cpp
+    src/list.cpp
 )

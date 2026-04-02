@@ -20,12 +20,12 @@ std::shared_ptr<func_t> func_t::bind(std::shared_ptr<Instance> instance) {return
 
 Function::Function(FunDecl& declaration, std::shared_ptr<Environment> closure, bool isConstructor) : declaration(declaration), closure(closure), isConstructor(isConstructor) {}
 
-int Function::arity() {return declaration.param.capacity();}
+int Function::arity() {return declaration.param.size();}
 
 literal_t Function::call(std::vector<literal_t> args, Token) {
   auto backup = Interpreter::env;
   Environment new_env = Environment(closure);
-  for (auto i = 0; i < args.capacity(); i++) {
+  for (auto i = 0; i < args.size(); i++) {
     new_env.define(declaration.param[i], args[i]);
   }
   try {
@@ -106,8 +106,10 @@ literal_t GetLength::call(std::vector<literal_t> args, Token tok) {
     return std::round(*val);
   } else if (auto val = std::get_if<std::string>(&args[0])) {
     return static_cast<int>((*val).size());
+  } else if (auto val = std::get_if<std::shared_ptr<List>>(&args[0])) {
+    return static_cast<int>((*val)->values.size());
   } else {
-    return _NULL;
+    return 0;
   }
 }
 std::string GetLength::to_string() {
