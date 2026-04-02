@@ -92,7 +92,7 @@ a.a_method(); // output: B instance, a_method, field 'field': 23
 a.b_method(); // output: A instance, a_method
 ```
 ### basic I/O
-Like any other language, cac has functions for printing and scaning user input. The first one as you may have already seen is ``zaprintit``. Why ``zaprintit``? It's just a funny english spelling of word 'print' in russian. The same way I called scanning ``zascanit``.
+Like any other language, cac has functions for printing and scanning user input. The first one as you may have already seen is ``zaprintit``. Why ``zaprintit``? It's just a funny english spelling of word 'print' in russian. The same way I called scanning ``zascanit``.
 ```javascript
 var input;
 zaprintit "Type stuff: ";
@@ -107,11 +107,11 @@ for filesystem I/O you can use class ``FILE``, which has constructor that takes 
 //
 var file = FILE("test.txt");
 var text = file.read(0,0); // if both arguements are zero, it reads the whole file, just for convenience
-zaprintit(file.read(0,0)); // output: Hello World!
+zaprintit text; // output: Hello World!
 
 file.write(len(text), " Hello from cac!");
 var text = file.read(0,0);
-zaprintit(file.read(0,0)); // output: Hello World! Hello from cac!
+zaprintit text; // output: Hello World! Hello from cac!
 ```
 ### misc
 - include "*path*": include another cac file
