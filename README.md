@@ -95,7 +95,7 @@ a.b_method(); // output: A instance, a_method
 Like any other language, cac has functions for printing and scaning user input. The first one as you may have already seen is ``zaprintit``. Why ``zaprintit``? It's just a funny english spelling of word 'print' in russian. The same way I called scanning ``zascanit``.
 ```javascript
 var input;
-zaprintit "Print stuff";
+zaprintit "Type stuff: ";
 zascanit input; // input: good morning
 zaprintit input + "\n"; // output: good morning
 ```
@@ -114,6 +114,7 @@ var text = file.read(0,0);
 zaprintit(file.read(0,0)); // output: Hello World! Hello from cac!
 ```
 ### misc
+- include "*path*": include another cac file
 - str(value) -> string: cast to string
 - int(value) -> int: cast to integer
 - time() -> int: current unix time
