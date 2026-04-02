@@ -19,9 +19,10 @@ struct ContinueStmt;
 struct ClassDecl;
 struct Label;
 struct Goto;
+struct Include;
 
 
-using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt, FunDecl, ReturnStmt, BreakStmt, ContinueStmt, ClassDecl, Label, Goto>;
+using Stmt = std::variant<std::monostate, ExprStmt, PrintStmt, Var, Block, IfStmt, While, ScanStmt, FunDecl, ReturnStmt, BreakStmt, ContinueStmt, ClassDecl, Label, Goto, Include>;
 
 
 struct ExprStmt {
@@ -88,6 +89,11 @@ struct Label {
 struct Goto {
   Goto(Token name);
   Token name;
+};
+struct Include {
+  Include(Token tok, std::string path);
+  Token tok;
+  std::string path;
 };
 
 //struct InnerExprStmt {Stmt stmt; InnerExprStmt(Stmt stmt); void operator=(Stmt stmt);};

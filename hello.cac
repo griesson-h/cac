@@ -1,0 +1,3 @@
+func zaprintitln(a) {
+    zaprintit str(a) + "\n";
+}

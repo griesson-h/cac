@@ -27,7 +27,9 @@ enum token_type {
   RETURN, _EOF,
   PRINT, SCAN,
   BREAK, CONTINUE,
-  LABEL, GOTO, SUPER
+  LABEL, GOTO, SUPER,
+
+  INCLUDE
 };
 
 struct func_t;

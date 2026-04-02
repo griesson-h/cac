@@ -51,7 +51,8 @@ std::map<std::string, token_type> reserved_keywords = {
   {"zascanit", SCAN},
   {"label", LABEL},
   {"goto", GOTO},
-  {"superduper", SUPER}
+  {"superduper", SUPER},
+  {"include", INCLUDE}
 };
 Token null_token = Token(_NULL, "", nullptr, 0);
 

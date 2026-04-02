@@ -1,6 +1,7 @@
 #pragma once
 #include "lexer.h"
 #include "function.h"
+#include <fstream>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -39,3 +40,37 @@ public:
   literal_t get(Token name);
   void set(Token name, literal_t value);
 };
+
+namespace Foreigns {
+class CacFile : public class_t {
+private:
+  std::unordered_map<std::string, std::shared_ptr<func_t>> methods;
+  Token name = Token(IDENT, "FILE", nullptr, 0);
+public:
+  CacFile();
+  int arity() override;
+  literal_t call(std::vector<literal_t> args, Token) override;
+  std::string to_string() override;
+  std::shared_ptr<func_t> lookup_method(Token name) override;
+  Token get_token() override;
+};
+struct CacFileMethodGet : public func_t {
+  std::shared_ptr<Instance> instance;
+
+  CacFileMethodGet(std::shared_ptr<Instance> instance);
+  int arity() override;
+  literal_t call(std::vector<literal_t> args, Token tok) override;
+  std::string to_string() override;
+  std::shared_ptr<func_t> bind(std::shared_ptr<Instance> instance) override;
+};
+
+struct CacFileMethodWrite : public func_t {
+  std::shared_ptr<Instance> instance;
+
+  CacFileMethodWrite(std::shared_ptr<Instance> instance);
+  int arity() override;
+  literal_t call(std::vector<literal_t> args, Token tok) override;
+  std::string to_string() override;
+  std::shared_ptr<func_t> bind(std::shared_ptr<Instance> instance) override;
+};
+}

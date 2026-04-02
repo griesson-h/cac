@@ -17,7 +17,7 @@ public:
   static void resolve(expr &ex, int depth);
 
   static std::shared_ptr<Environment> env;
-  static std::shared_ptr<Environment> backup_env; // pointer to the global environment to recover it after block statement/s
+  static std::shared_ptr<Environment> global;
   static std::unordered_map<std::string, long> labels;
 
   static void execute_block(std::vector<Stmt> &stmts, Environment &new_env);
@@ -60,6 +60,7 @@ private:
   static void execute_over(ClassDecl &stmt);
   static void execute_over(Label &stmt);
   static void execute_over(Goto &stmt);
+  static void execute_over(Include &stmt);
 
   static literal_t evaluate(expr &ex);
   static literal_t evaluate_over(Literal &ex);

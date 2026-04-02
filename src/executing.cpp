@@ -17,7 +17,7 @@
 #include <sstream>
 
 std::shared_ptr<Environment> Interpreter::env(new Environment);
-std::shared_ptr<Environment> Interpreter::backup_env(nullptr);
+std::shared_ptr<Environment> Interpreter::global(nullptr);
 std::unordered_map<expr*, int> Interpreter::locals;
 std::unordered_map<std::string, long> Interpreter::labels;
 bool Interpreter::passed_first_init = false;
@@ -27,16 +27,17 @@ bool Interpreter::in_loop = false;
 
 void Interpreter::interpret(std::vector<Stmt> &statements) {
   if (!passed_first_init) {
-    backup_env = env;
+    global = env;
     init_foreigns();
   }
   passed_first_init = true;
+  current = 0;
   try {
     for (; current < statements.capacity(); current++) {
       execute(statements[current]);
     }
   } catch(RuntimeError e) {
-    if (!backup_env) env = backup_env;
+    if (!global) env = global;
     report_at_runtime(e.token, e.what());
   }
 }
@@ -52,6 +53,11 @@ void Interpreter::init_foreigns() {
   env->define(Token(IDENT, "str", nullptr, 0), to_string);
   std::shared_ptr<func_t> to_int(new Foreigns::ToInteger);
   env->define(Token(IDENT, "int", nullptr, 0), to_int);
+  std::shared_ptr<func_t> get_length(new Foreigns::GetLength);
+  env->define(Token(IDENT, "len", nullptr, 0), get_length);
+
+  std::shared_ptr<class_t> cacFile(new Foreigns::CacFile);
+  env->define(Token(IDENT, "FILE", nullptr, 0), cacFile);
 }
 
 void Interpreter::execute(Stmt &stmt) {
@@ -180,6 +186,7 @@ void Interpreter::execute_over(Goto &stmt) {
     throw RuntimeError(stmt.name, ss.str());
   }
 }
+void Interpreter::execute_over(Include&) {}
 
 
 literal_t Interpreter::evaluate(expr &ex) {
@@ -273,7 +280,7 @@ literal_t Interpreter::lookup_variables(Token name, expr &ex) {
     int distance = locals.at(reinterpret_cast<expr*>(&ex));
     return env->get_at(distance, name);
   } catch(std::out_of_range) {
-    return backup_env->get(name);
+    return global->get(name);
   }
 }
 literal_t Interpreter::evaluate_over(Variable &ex) {
@@ -304,7 +311,7 @@ literal_t Interpreter::evaluate_over(Assign &ex) {
     int distance = locals.at(reinterpret_cast<expr*>(&ex));
     env->assign_at(distance, ex.identifier, value);
   } catch(std::out_of_range) {
-    backup_env->assign(ex.identifier, value);
+    global->assign(ex.identifier, value);
   }
   return value;
 }

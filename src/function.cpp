@@ -5,6 +5,7 @@
 #include "lexer.h"
 #include "statements.h"
 #include "classes.h"
+#include <cmath>
 #include <ctime>
 #include <memory>
 #include <sstream>
@@ -82,6 +83,8 @@ literal_t ToInteger::call(std::vector<literal_t> args, Token tok) {
       return std::stoi(*val);
     } else if (auto val = std::get_if<double>(&args[0])) {
       return static_cast<int>(*val);
+    } else {
+      throw Interpreter::RuntimeError(tok, "Unavailable cast to int");
     }
   } catch (std::out_of_range) {
     throw Interpreter::RuntimeError(tok, "Integer overflow while casting value to int");
@@ -92,6 +95,24 @@ literal_t ToInteger::call(std::vector<literal_t> args, Token tok) {
 std::string ToInteger::to_string() {
   std::stringstream ss;
   ss << "<see you tried to print 'int' function, that's...weird>";
+  return ss.str();
+}
+
+int GetLength::arity() {return 1;}
+literal_t GetLength::call(std::vector<literal_t> args, Token tok) {
+  if (auto val = std::get_if<int>(&args[0])) {
+    return *val;
+  } else if (auto val = std::get_if<double>(&args[0])) {
+    return std::round(*val);
+  } else if (auto val = std::get_if<std::string>(&args[0])) {
+    return static_cast<int>((*val).size());
+  } else {
+    return _NULL;
+  }
+}
+std::string GetLength::to_string() {
+  std::stringstream ss;
+  ss << "<see you tried to print 'len' function, that's...weird>";
   return ss.str();
 }
 }

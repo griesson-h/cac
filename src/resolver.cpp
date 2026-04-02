@@ -16,6 +16,7 @@ std::vector<std::unordered_map<std::string, std::pair<RESOLVE, int>>> Resolver::
 FUNC_TYPE Resolver::currentFuncType = FUNC_TYPE::NONE;
 CLASS_TYPE Resolver::currentClassType = CLASS_TYPE::NONE;
 long Resolver::current = 0;
+std::vector<std::string> Resolver::included;
 
 void Resolver::resolve(Stmt &stmt) {
   std::visit([&](auto&& value){return resolve_over(value);}, stmt);
@@ -28,10 +29,17 @@ void Resolver::define_foreigns() {
   define(Token(IDENT, "str", nullptr, 0));
   define(Token(IDENT, "time", nullptr, 0));
   define(Token(IDENT, "int", nullptr, 0));
+  define(Token(IDENT, "len", nullptr, 0));
+  define(Token(IDENT, "FILE", nullptr, 0));
 }
-void Resolver::resolve(std::vector<Stmt> &stmts) {
+void Resolver::resolve_init(std::vector<Stmt> &stmts) {
   for (; current < stmts.capacity(); ++current) {
     resolve(stmts[current]);
+  }
+}
+void Resolver::resolve(std::vector<Stmt> &stmts) {
+  for (auto& stmt : stmts) {
+    resolve(stmt);
   }
 }
 
@@ -86,6 +94,10 @@ void Resolver::resolve_over(FunDecl& stmt) {
   resolve_func(stmt, FUNC_TYPE::FUNC);
 }
 
+void Resolver::resolve_over(Include& stmt) {
+  included.push_back(stmt.path);
+}
+
 // boring stuff
 
 void Resolver::resolve_over(std::monostate&) {}
@@ -116,7 +128,7 @@ void Resolver::resolve_over(ReturnStmt& stmt) {
     report(stmt.tok, "Cannot return from a non-function scope (wth did you think was supposed to happen?)");
   if (is_not_null_expr(stmt.return_value)) {
     if (currentFuncType == FUNC_TYPE::INIT)
-      report(stmt.tok, "Cannot return from a constructor");
+      report(stmt.tok, "Constructor cannot return non-null literal");
     resolve(stmt.return_value);
   }
 }

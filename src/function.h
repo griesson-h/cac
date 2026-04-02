@@ -49,5 +49,10 @@ struct ToInteger : public func_t {
   literal_t call(std::vector<literal_t> args, Token tok) override;
   std::string to_string() override;
 };
+struct GetLength : public func_t {
+  int arity() override;
+  literal_t call(std::vector<literal_t> args, Token tok) override;
+  std::string to_string() override;
+};
 }
 

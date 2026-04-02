@@ -20,14 +20,17 @@ bool failed_at_runtime = false;
 const bool debuginfo = false;
 
 std::unordered_map<std::string, std::vector<Stmt>> ASTs;
+std::string current_file;
+
+void run_script(const char* source);
 
 void SIGINT_handler(int s) {
   std::cout << '\n';
   exit(0);
 }
 
-void report(int line, const char* message, const char* where, const char* file) {
-  std::cout << "<file " << file << ", line " << line << "> " << where << ": " << message << std::endl;
+void report(int line, const char* message, const char* where) {
+  std::cout << "<file " << current_file << ", line " << line << "> " << where << ": " << message << std::endl;
   failed = true;
 }
 void report(Token token, const char* message) {
@@ -39,16 +42,20 @@ void report(Token token, const char* message) {
     report(token.line, message, ss.str().c_str());
   }
 }
-void report_at_runtime(Token token, std::string msg, const char* file) {
-  std::cout << "<file " << file << ", line " << token.line << "> "
+void report_at_runtime(Token token, std::string msg) {
+  std::cout << "<file " << current_file << ", line " << token.line << "> "
     << "\nRUNTIME ERROR: " << msg << std::endl;
   failed_at_runtime = true;
 }
-void report_warning(int line, const char* message, const char* file) {
-  std::cout << "<file " << file << ", line " << line << "> " << ": WARNING: " << message << std::endl;
+void report_warning(int line, const char* message) {
+  std::cout << "<file " << current_file << ", line " << line << "> " << ": WARNING: " << message << std::endl;
 }
 
 void run(std::string bytes, std::string file) {
+  Resolver::included.clear();
+  tokens.clear();
+  current_file = file;
+
   if (failed) return;
 
   if (debuginfo)
@@ -69,20 +76,27 @@ void run(std::string bytes, std::string file) {
     return;
   }
 
-  // TODO: make it work for multipule files
   std::vector<Stmt> program = Parser::parse();
-  /*TEMP*/ASTs[file] = program;
+  ASTs[file] = program;
 
   if (failed) {
     std::cout << "Parser failed, aborting\n";
     return;
   }
+
+  Resolver::current = 0;
   Resolver::define_foreigns();
-  Resolver::resolve(ASTs[file]);
+  Resolver::resolve_init(ASTs[file]);
   if (failed) {
     std::cout << "Resolver failed, aborting\n";
     return;
   }
+
+  auto included = Resolver::included;
+  for (auto include : included) {
+    run_script(include.c_str());
+  }
+  current_file = file;
 
   if (debuginfo)
     std::cout << "------------output------------" << std::endl;
@@ -106,10 +120,12 @@ void run(std::string bytes, std::string file) {
 //  std::cout << PreatyPrinter::print(dobavlenie) << std::endl;
 }
 
-void run_script(char* source) {
+void run_script(const char* source) {
   std::ifstream bytestream(source);
   if (!bytestream.is_open()) {
-    throw std::runtime_error("ERROR: passed file does not exist");
+    std::stringstream ss;
+    ss << "ERROR: passed or included file '" << source << "' does not exist";
+    throw std::runtime_error(ss.str());
   }
   std::string temp;
   std::stringstream bytes;
@@ -120,7 +136,7 @@ void run_script(char* source) {
     bytes << temp << '\n';
   }
   bytestream.close();
-  run(bytes.str(), "IDK");
+  run(bytes.str(), source);
 }
 
 void run_cmd() {
@@ -133,7 +149,6 @@ void run_cmd() {
     if (line == "clear") {std::cout << "\033[2J\033[1;1H"; continue;} // clear and move the cursor to the top left
     if (line == "exit") break;
     run(line, std::string("CMD_PROMT").append(std::to_string(cmd_id)));
-    /*(maybe)TEMP*/tokens.clear();
     failed = false;
     failed_at_runtime = false;
     cmd_id++;

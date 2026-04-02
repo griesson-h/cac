@@ -34,6 +34,7 @@ private:
   static Stmt continue_statement();
   static Stmt label_statement();
   static Stmt goto_statement();
+  static Stmt include_statement();
 
   static expr assignment();
   static expr lambda();

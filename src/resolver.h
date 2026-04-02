@@ -18,6 +18,8 @@ enum class CLASS_TYPE {
 
 /*abstract*/ class Resolver {
 public:
+  static void resolve_init(std::vector<Stmt> &stmts);
+
   static void resolve(Stmt &stmt);
   static void resolve(expr &ex);
   static void resolve(std::vector<Stmt> &stmts);
@@ -25,11 +27,13 @@ public:
   static void resolve_func(FunDecl &stmt, FUNC_TYPE decl);
   static void define_foreigns();
 
+  static std::vector<std::string> included;
+  static long current;
+
 private:
   static std::vector<std::unordered_map<std::string, std::pair<RESOLVE, int>>> scopes;
   static FUNC_TYPE currentFuncType;
   static CLASS_TYPE currentClassType;
-  static long current;
 
   static void begin_scope();
   static void end_scope();
@@ -52,6 +56,7 @@ private:
   static void resolve_over(ClassDecl &stmt);
   static void resolve_over(Label &stmt);
   static void resolve_over(Goto &stmt);
+  static void resolve_over(Include &stmt);
 
   static void resolve_over(Literal &ex);
   static void resolve_over(Binary &ex);

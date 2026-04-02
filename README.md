@@ -14,7 +14,8 @@ Interpreter for my new pseudo-language cac (/ˈkeɪk/)
 - [x] classes
 - [x] inheritence
 - [x] finish the book (that is the second charapter)
-- [ ] usage of multiple files
+- [x] usage of multiple files
+- [x] filesystem basic I/O
 - [ ] at least some optimazations (dont even wait lol)
 
 ## 

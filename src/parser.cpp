@@ -116,6 +116,7 @@ Stmt Parser::statement() {
   if (match(RETURN)) {current++; return return_statement();}
   if (match(LABEL)) {current++; return label_statement();}
   if (match(GOTO)) {current++; return goto_statement();}
+  if (match(INCLUDE)) {current++; return include_statement();}
 
   return expr_statement();
 }
@@ -272,6 +273,22 @@ Stmt Parser::goto_statement() {
   Token name = Error::consume(IDENT, "Expected identifier after 'goto' statement");
   Error::consume(SEMI, "Expected ';' after statement");
   return Goto(name);
+}
+
+Stmt Parser::include_statement() {
+  Token tok = tokens[current - 1];
+  expr patchexpr = primary();
+  if (!std::holds_alternative<Literal>(patchexpr)) {
+    throw Error::error(tokens[current - 1], "Include path type should always be a string literal");
+  }
+  literal_t pathlit = std::get<Literal>(patchexpr).literal;
+  if (!LitOp::contains<std::string>(pathlit)) {
+    // gotos in cpp are messed up for some reason so i gotta repeat
+    throw Error::error(tokens[current - 1], "Include path type should always be a string literal");
+  }
+  std::string path = std::get<std::string>(pathlit);
+  Error::consume(SEMI, "Expected ';' after statement");
+  return Include(tok, path);
 }
 
 

@@ -7,6 +7,8 @@ set(CMAKE_CXX_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+option(ENABLE_ASAN "Enable AddressSanitizer" ON)
+
 set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_BUILD_TYPE Release)
 #set(CMAKE_BUILD_TYPE MinSizeRel)
