@@ -119,3 +119,14 @@ zaprintit text; // output: Hello World! Hello from cac!
 - int(value) -> int: cast to integer
 - time() -> int: current unix time
 - len(value) -> int: length of a string
+
+# NEW FEATURE!!!!!!!!!!!!111!!11!!1
+Lists.
+```javascript
+var a = [2, "hello", 32];
+zaprintit str(a[2]) + "\n"; // output: 32
+a[3] = 1;
+zaprintit str(a) + "\n"; // output: [2, hello, 32, 1]
+a[5] = 3;
+zaprintit str(a) + "\n"; // output: [2, hello, 32, 1, null, 3]
+```

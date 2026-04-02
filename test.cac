@@ -11,12 +11,9 @@ func push(list, value) {
     list[len(list)] = value;
 }
 
-var a = [23, 54, 2];
+var a = [23, "string", 2];
 
 zaprintit str(a) + "\n";
 
-for 2+2; 2+2; 2+2 {
-    push(a, 23);
-}
 zaprintit "finished\n";
 zaprintit str(a) + "\n";
