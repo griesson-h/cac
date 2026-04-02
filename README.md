@@ -43,7 +43,7 @@ var bool = true;
 if bool
     zaprintit "if statement\n";
 bool = (2 <= 3 && 5 >= 2);
-int i = 0;
+var i = 0;
 while bool {
     i = i + 1;
     if i > 20 break;
