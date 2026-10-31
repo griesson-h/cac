@@ -16,7 +16,7 @@ Interpreter for my new pseudo-language cac (/ˈkeɪk/)
 - [x] finish the book (that is the second charapter)
 - [x] usage of multiple files
 - [x] filesystem basic I/O
-- [ ] at least some optimazations (dont even wait lol)
+- [ ] at least some optimazation (dont even wait lol)
 
 ## language
 ### WARNING: the language is disgustingly slow (because it uses tree-walk interpreter)
@@ -53,6 +53,7 @@ for ;i < 100; i = i + 1 {
     zaprintit str(i) + "\n";
 }
 ```
+### FOR LOOPS DON'T WORK, IDK WHY BUT I'M NOT FIXING THAT TRASH OF A CODE
 there are also labels and goto statements, just 'cause why not
 ```javascript
 var a = 0;
